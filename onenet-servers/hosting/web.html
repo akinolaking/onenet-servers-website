@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Hosting | OneNet Servers</title>
+  <meta name="description" content="Fast web hosting for businesses in Nigeria and the UK. LiteSpeed, CloudLinux, free SSL, free migration, and pricing in NGN, GBP, or USD.">
+  <meta property="og:title" content="Web Hosting | OneNet Servers">
+  <meta property="og:description" content="Fast web hosting for businesses in Nigeria and the UK. LiteSpeed, CloudLinux, free SSL, free migration, and pricing in NGN, GBP, or USD.">
+  <meta property="og:image" content="https://onenetservers.net/assets/og-web-hosting.jpg">
+  <meta property="og:url" content="https://onenetservers.net/hosting/web">
+  <link rel="canonical" href="https://onenetservers.net/hosting/web">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lato:ital,opsz,wght@0,6..12,300;0,6..12,400;1,6..12,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
+  <link rel="stylesheet" href="/shared/tokens.css">
+  <link rel="stylesheet" href="/shared/layout.css">
+  <link rel="stylesheet" href="/shared/components.css">
+  <link rel="stylesheet" href="/shared/nav.css">
+  <link rel="stylesheet" href="/shared/footer.css">
+  <link rel="stylesheet" href="/shared/animations.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Can you migrate my site for free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. We handle file, database, DNS, and panel migration at no extra cost for qualifying hosting plans."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you support naira payments?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Nigerian customers can pay in NGN via Paystack, while UK and international customers can pay in GBP or USD."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header id="main-nav">
+    <div class="nav-shell">
+      <a class="nav-brand" href="/">
+        <img src="/assets/logo.svg" alt="OneNet Servers">
+        <span>OneNet Servers</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="/">Home</a>
+        <div class="nav-has-dropdown">
+          <a class="nav-link" href="/hosting/web" aria-expanded="false">Hosting</a>
+          <div class="nav-dropdown">
+            <a href="/hosting/web">Web Hosting</a>
+            <a href="/hosting/wordpress">WordPress Hosting</a>
+            <a href="/hosting/reseller">Reseller Hosting</a>
+            <a href="/hosting/vps">Cloud VPS</a>
+          </div>
+        </div>
+        <a class="nav-link" href="/domains">Domains</a>
+        <a class="nav-link" href="/email">Email</a>
+        <a class="nav-link" href="/security/ssl">Security</a>
+        <a class="nav-link" href="/contact">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <div class="currency-switcher" aria-label="Currency switcher">
+          <button class="currency-btn" data-currency="NGN" type="button">NGN</button>
+          <button class="currency-btn" data-currency="GBP" type="button">GBP</button>
+          <button class="currency-btn" data-currency="USD" type="button">USD</button>
+        </div>
+        <a class="btn btn-sm btn-outline" href="/contact">Talk to us</a>
+        <a class="btn btn-sm btn-primary" href="#plans">See plans</a>
+      </div>
+      <button id="nav-hamburger" class="nav-hamburger" aria-expanded="false" aria-label="Open menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+  <div id="mobile-drawer" class="mobile-drawer" aria-hidden="true">
+    <a class="mobile-nav-link" href="/">Home</a>
+    <a class="mobile-nav-link" href="/hosting/web">Web Hosting</a>
+    <a class="mobile-nav-link" href="/domains">Domains</a>
+    <a class="mobile-nav-link" href="/email">Email</a>
+    <a class="mobile-nav-link" href="/security/ssl">Security</a>
+    <div class="mobile-drawer-actions">
+      <a class="btn btn-sm btn-outline" href="/contact">Talk to us</a>
+      <a class="btn btn-sm btn-primary" href="#plans">See plans</a>
+    </div>
+  </div>
+  <main class="page-body">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <div class="badge badge-blue"><span class="live-dot"></span> Web hosting for operators, founders, and agencies</div>
+          <h1>Web hosting that feels <em class="h-em">faster, safer, and easier to trust.</em></h1>
+          <p class="lead">This page uses the prototype as the product-page theme base: stronger first-screen hierarchy, clean browser mockup, and the missing conversion fixes placed where they actually help.</p>
+          <div class="hero-trust-strip">
+            <div class="trust-badge">30-day MBG</div>
+            <div class="trust-badge">Free SSL</div>
+            <div class="trust-badge">NiRA Accredited</div>
+            <div class="trust-badge">SCUML</div>
+            <div class="trust-badge">UK Registered</div>
+          </div>
+          <div class="hero-actions">
+            <a class="btn btn-lg btn-primary" href="#plans">See plans</a>
+            <a class="btn btn-lg btn-secondary" href="/contact">Talk to an expert</a>
+          </div>
+          <div class="cta-reassurance">
+            <span class="cta-reassurance-item">No credit card required</span>
+            <span class="cta-reassurance-item">Cancel anytime</span>
+            <span class="cta-reassurance-item">Free migration included</span>
+          </div>
+        </div>
+        <div class="hero-browser reveal" data-delay="1">
+          <div class="browser-top">
+            <div class="browser-dots"><span></span><span></span><span></span></div>
+            <div class="browser-url">panel.onenetservers.net/plesk</div>
+          </div>
+          <div class="browser-body">
+            <div class="hero-stat-grid">
+              <div class="hero-stat"><div class="hero-stat-num">99.9%</div><div class="hero-stat-label">Uptime</div></div>
+              <div class="hero-stat"><div class="hero-stat-num">&lt;800ms</div><div class="hero-stat-label">Load time</div></div>
+              <div class="hero-stat"><div class="hero-stat-num">30d</div><div class="hero-stat-label">Guarantee</div></div>
+            </div>
+            <div class="mockup-band">
+              <div class="mockup-surface">
+                <div class="surface-badge">Plesk dashboard</div>
+                <div class="surface-row"></div>
+                <div class="surface-row short"></div>
+                <div class="surface-chart"></div>
+              </div>
+              <div class="mockup-side">
+                <div class="surface-badge">SSL active</div>
+                <div class="surface-row"></div>
+                <div class="surface-row short"></div>
+                <div class="surface-row short"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-bar">
+      <div class="trust-track">
+        <div class="trust-item">LiteSpeed web server</div>
+        <div class="trust-item">CloudLinux isolation</div>
+        <div class="trust-item">Free SSL on every plan</div>
+        <div class="trust-item">Plesk control panel</div>
+        <div class="trust-item">Daily automated backups</div>
+        <div class="trust-item">Free website migration</div>
+        <div class="trust-item">LiteSpeed web server</div>
+        <div class="trust-item">CloudLinux isolation</div>
+      </div>
+    </section>
+
+    <section class="section section-bg">
+      <div class="container">
+        <div class="section-head centered reveal">
+          <div class="eyebrow eyebrow-center">How it works</div>
+          <h2>Pick a plan. We provision. <em class="h-em">You go live.</em></h2>
+        </div>
+        <div class="steps">
+          <article class="step-card reveal"><div class="step-no">1</div><h3>Choose your plan</h3><p class="body-copy text-muted">Select the capacity level that matches your current site or portfolio.</p></article>
+          <article class="step-card reveal" data-delay="1"><div class="step-no">2</div><h3>We set up your environment</h3><p class="body-copy text-muted">Provisioning, SSL, isolation, and migration prep are handled automatically.</p></article>
+          <article class="step-card reveal" data-delay="2"><div class="step-no">3</div><h3>You launch with backup</h3><p class="body-copy text-muted">Go live with support, restore points, and a clearer operating baseline.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="plans" class="section">
+      <div class="container">
+        <div class="section-head centered reveal">
+          <div class="eyebrow eyebrow-center">Plans</div>
+          <h2>Four plans. One stack. <em class="h-em">Clear upgrade path.</em></h2>
+        </div>
+        <div class="pricing-proof reveal">
+          <div class="proof-avatars"><span></span><span></span><span></span><span></span></div>
+          <div class="proof-stars">★★★★★</div>
+          <p class="proof-quote">“Our move from a slower UK host took one ticket and one afternoon.” — Tobi A.</p>
+        </div>
+        <div class="billing-toggle reveal">
+          <span class="billing-label active">Monthly</span>
+          <button class="toggle-pill" type="button" role="switch" aria-checked="false"><span class="toggle-knob"></span></button>
+          <span class="billing-label">Annual</span>
+          <span class="save-badge">Save up to 35%</span>
+        </div>
+        <div class="plan-grid">
+          <article class="plan-card reveal" data-plan="wh_starter">
+            <div class="plan-card-header">
+              <div class="plan-name">Starter</div>
+              <div class="plan-price"><span class="plan-sym">$</span><span class="plan-num">3</span><span class="plan-per">/mo</span></div>
+              <div class="plan-billing-label">For first business sites</div>
+            </div>
+            <div class="plan-card-body">
+              <div class="plan-divider"></div>
+              <ul class="plan-feats"><li>2 websites</li><li>10 GB SSD storage</li><li>10 email accounts</li><li>Free SSL</li></ul>
+            </div>
+            <div class="plan-card-footer"><a class="btn btn-md btn-outline" href="/contact">Get started</a></div>
+          </article>
+          <article class="plan-card reveal" data-delay="1" data-plan="wh_lite">
+            <div class="plan-card-header">
+              <div class="plan-name">Lite</div>
+              <div class="plan-price"><span class="plan-sym">$</span><span class="plan-num">9</span><span class="plan-per">/mo</span></div>
+              <div class="plan-billing-label">For growing teams</div>
+            </div>
+            <div class="plan-card-body">
+              <div class="plan-divider"></div>
+              <ul class="plan-feats"><li>3 websites</li><li>30 GB SSD storage</li><li>CloudLinux isolation</li><li>Daily backups</li></ul>
+            </div>
+            <div class="plan-card-footer"><a class="btn btn-md btn-outline" href="/contact">Get started</a></div>
+          </article>
+          <article class="plan-card popular reveal" data-delay="2" data-plan="wh_premium">
+            <div class="badge-popular">Popular</div>
+            <div class="plan-card-header">
+              <div class="plan-name">Premium</div>
+              <div class="plan-price"><span class="plan-sym">$</span><span class="plan-num">18</span><span class="plan-per">/mo</span></div>
+              <div class="plan-billing-label">Best for high-intent business sites</div>
+            </div>
+            <div class="plan-card-body">
+              <div class="plan-divider"></div>
+              <ul class="plan-feats"><li>7 websites</li><li>50 GB SSD storage</li><li>Priority support</li><li>WP Toolkit</li></ul>
+            </div>
+            <div class="plan-card-footer"><a class="btn btn-md btn-primary" href="/contact">Get started</a></div>
+          </article>
+          <article class="plan-card reveal" data-delay="3" data-plan="wh_ultimate">
+            <div class="plan-card-header">
+              <div class="plan-name">Ultimate</div>
+              <div class="plan-price"><span class="plan-sym">$</span><span class="plan-num">32</span><span class="plan-per">/mo</span></div>
+              <div class="plan-billing-label">For multi-site operators</div>
+            </div>
+            <div class="plan-card-body">
+              <div class="plan-divider"></div>
+              <ul class="plan-feats"><li>15 websites</li><li>100 GB SSD storage</li><li>Priority restore support</li><li>Dedicated account care</li></ul>
+            </div>
+            <div class="plan-card-footer"><a class="btn btn-md btn-outline" href="/contact">Get started</a></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-bg">
+      <div class="container">
+        <div class="section-head centered reveal">
+          <div class="eyebrow eyebrow-center">Included</div>
+          <h2>Every plan ships with <em class="h-em">the essentials built in.</em></h2>
+        </div>
+        <div class="included-grid">
+          <article class="included-card reveal"><div class="icon-box ib-blue">S</div><h3>Free SSL</h3><p>HTTPS is on from day one, not sold later as a trust upgrade.</p></article>
+          <article class="included-card reveal" data-delay="1"><div class="icon-box ib-green">B</div><h3>Daily backups</h3><p>Restore points help you recover fast when content, plugins, or code go wrong.</p></article>
+          <article class="included-card reveal" data-delay="2"><div class="icon-box ib-red">M</div><h3>Malware scanning</h3><p>ImmunifyAV+ gives you a stronger default defensive layer on shared hosting.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head centered reveal">
+          <div class="eyebrow eyebrow-center">Compare</div>
+          <h2>See where the stack lands <em class="h-em">against typical alternatives.</em></h2>
+        </div>
+        <div class="table-scroll-wrap reveal">
+          <div class="table-scroll-hint">← Swipe to compare →</div>
+          <div class="table-inner">
+            <table class="compare-table">
+              <thead>
+                <tr><th>Feature</th><th class="pop-col">OneNet</th><th>Popular UK Host</th><th>Budget NG Host</th><th>Generic Shared Host</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>LiteSpeed</td><td class="pop-col">Included</td><td>Usually no</td><td>Sometimes</td><td>No</td></tr>
+                <tr><td>CloudLinux</td><td class="pop-col">Included</td><td>Plan-dependent</td><td>Rare</td><td>No</td></tr>
+                <tr><td>Free migration</td><td class="pop-col">Included</td><td>Paid add-on</td><td>Manual</td><td>Manual</td></tr>
+                <tr><td>Naira checkout</td><td class="pop-col">Yes</td><td>No</td><td>Yes</td><td>No</td></tr>
+                <tr><td>.NG familiarity</td><td class="pop-col">Strong</td><td>Weak</td><td>Medium</td><td>Weak</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-bg">
+      <div class="container">
+        <div class="section-head centered reveal">
+          <div class="eyebrow eyebrow-center">FAQ</div>
+          <h2>Common objections, <em class="h-em">answered clearly.</em></h2>
+        </div>
+        <div class="faq-list">
+          <article class="faq-item reveal"><button class="faq-q" type="button" aria-expanded="false">Can you migrate my site for free?<span>+</span></button><div class="faq-a" hidden>Yes. We handle the technical migration for qualifying plans, including files, databases, DNS, and email handoff.</div></article>
+          <article class="faq-item reveal" data-delay="1"><button class="faq-q" type="button" aria-expanded="false">Can I pay in naira?<span>+</span></button><div class="faq-a" hidden>Yes. Nigerian customers can pay in naira through Paystack. UK and international customers can use GBP or USD.</div></article>
+          <article class="faq-item reveal" data-delay="2"><button class="faq-q" type="button" aria-expanded="false">Is this cPanel or Plesk?<span>+</span></button><div class="faq-a" hidden>Plesk. The product-page prototype already leaned into a cleaner, more modern control experience, and that remains the direction here.</div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-banner">
+      <div class="container">
+        <div class="cta-banner-inner reveal">
+          <div>
+            <h2>Start with hosting that does not need extra explanation.</h2>
+            <p>Free migration, strong defaults, and a trust-first product page built from the new prototype direction.</p>
+          </div>
+          <div class="cta-banner-actions">
+            <a class="btn btn-md btn-white" href="#plans">See plans</a>
+            <a class="btn btn-md btn-white-outline" href="/contact">Talk to us</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer id="main-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo"><img src="/assets/logo.svg" alt="OneNet Servers"><span>OneNet Servers</span></div>
+          <p>Hosting and domain infrastructure for operators building trust with Nigerian and UK audiences.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Products</h4>
+          <ul><li><a href="/hosting/web">Web Hosting</a></li><li><a href="/domains">Domains</a></li><li><a href="/email">Business Email</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li><li><a href="/community">Community</a></li></ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <div class="footer-contact"><div>Nigeria: +234 201 330 9154</div><div>UK: +44 7333 880 7775</div><a href="mailto:support@onenetservers.net">support@onenetservers.net</a></div>
+        </div>
+      </div>
+      <div class="footer-bottom"><div class="footer-copy">© 2026 OneNet Servers</div><div class="footer-meta">UK RC: 14565201 · NG RC: 1775966 · NiRA Accredited</div></div>
+    </div>
+  </footer>
+  <button id="chat-fab" class="chat-fab" aria-label="Open live chat"><span class="chat-fab-tooltip">Chat with us</span>💬</button>
+  <div id="sticky-cta" class="sticky-cta">
+    <div class="sticky-cta-text"><strong>Web Hosting from $3.99/mo</strong> · LiteSpeed · CloudLinux · 30-day guarantee</div>
+    <div class="sticky-cta-actions">
+      <a class="btn btn-sm btn-white" href="#plans">See plans</a>
+      <a class="btn btn-sm btn-primary" href="/contact">Get started</a>
+    </div>
+    <button class="sticky-cta-close" type="button" aria-label="Close">×</button>
+  </div>
+  <div id="exit-bar" class="exit-bar" hidden>
+    <p>Not ready yet? Get our <strong>free domain transfer checklist</strong>.</p>
+    <form id="exit-bar-form" class="exit-bar-form">
+      <input type="email" placeholder="your@email.com">
+      <button type="submit" class="btn btn-sm btn-primary">Send it free</button>
+    </form>
+    <button id="exit-bar-close" class="exit-bar-close" type="button" aria-label="Close">×</button>
+  </div>
+  <script src="/shared/main.js"></script>
+</body>
+</html>
