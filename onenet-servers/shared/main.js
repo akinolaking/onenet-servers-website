@@ -261,7 +261,7 @@ function updateAllPrices() {
 
     const numEl = el.querySelector('.plan-num');
     const symEl = el.querySelector('.plan-sym');
-    const perEl = el.querySelector('.plan-billing-label');
+    const perEl = el.querySelector('.plan-per') || el.querySelector('.plan-billing-label');
 
     if (numEl) numEl.textContent = currentCurrency === 'NGN' ? Math.round(price).toLocaleString('en-NG') : price.toFixed(2).split('.')[0];
     if (symEl) symEl.textContent = sym;
@@ -366,7 +366,7 @@ function initChatFAB() {
       window.Intercom('show');
     } else {
       /* Fallback: open contact page */
-      window.location.href = '/contact';
+      window.location.href = '/contact.html';
     }
   });
 }
