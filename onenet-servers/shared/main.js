@@ -366,7 +366,7 @@ function initChatFAB() {
       window.Intercom('show');
     } else {
       /* Fallback: open contact page */
-      window.location.href = '/contact.html';
+      window.location.href = '/contact';
     }
   });
 }
