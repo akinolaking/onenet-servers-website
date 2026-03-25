@@ -1,921 +1,866 @@
-# CLAUDE.md — OneNet Servers Website Rebuild
-
-## Project Overview
-
-Rebuild the **OneNet Servers** (onenetservers.net) hosting company website from WordPress (Elementor + ACF) to a modern Vue 3 + TypeScript + Tailwind CSS stack with Directus headless CMS and WHMCS API integration.
-
-OneNet Servers is a Nigerian-based web hosting company (a ConqolX Technologies Limited Company, RC-1775966) serving businesses across Africa, North America, Europe, and Asia. Their products include web hosting, WordPress hosting, reseller hosting, domain registration, business email, SSL certificates, website security (OneGuard), and web design services. Their WHMCS billing portal lives at `host.onenetservers.net`.
-
-A **Figma design file** exists for this project. All component styling, spacing, typography, and visual details should follow the Figma designs precisely. Where the Figma design doesn't cover a specific element, use the existing live site as reference and maintain visual consistency.
+# CLAUDE.md — OneNet Servers Website Build
+## Master Prompt for Claude Code
 
 ---
 
-## Tech Stack
+## 0. WHAT THIS IS
 
-| Layer | Technology |
-|---|---|
-| Frontend Framework | **Nuxt 3** (Vue 3 Composition API + TypeScript, SSR/SSG) |
-| Styling | **Tailwind CSS 3** with custom theme |
-| Headless CMS | **Directus** (self-hosted, open-source) |
-| CMS Database | **PostgreSQL** |
-| Billing/Commerce | **WHMCS REST API** (existing at host.onenetservers.net) |
-| Deployment | **VPS** — Nginx reverse proxy, PM2, Docker |
-| Version Control | **Git** monorepo |
-| Testing | **Vitest** (unit), **Playwright** (e2e) |
-| CI/CD | **GitHub Actions** |
+You are building the complete public-facing website for **OneNet Servers**, a web hosting and domain registrar operating in Nigeria (Lagos) and the UK (London), incorporated as **ConqolX Technologies Limited** (UK RC: 14565201 · Nigeria RC: 1775966).
 
----
+This is a **pure HTML/CSS/Vanilla JS** project. No frameworks, no build tools, no npm. Every file must be a standalone `.html` file that opens directly in a browser. The design system lives in `shared/` and every page `<link>`s to it.
 
-## Brand & Design Tokens
-
-These values are derived from the current live site. The Figma file is the source of truth — override these if Figma specifies differently.
-
-```
-Colors:
-  primary:        #4338F5  (brand purple — buttons, headers, promo bar, footer bg)
-  primary-hover:  #3730D9
-  primary-light:  #EFF2FE  (light blue-gray section backgrounds)
-  secondary:      #000000  (headings, body text)
-  accent-green:   #22C55E  (green highlights, "Confidence" accent text)
-  accent-yellow:  #FACC15  (savings badges, promo highlights)
-  white:          #FFFFFF
-  gray-100:       #F9FAFB
-  gray-500:       #6B7280
-  gray-900:       #111827
-  success:        #16A34A
-  error:          #DC2626
-
-Typography:
-  Font Family:     Match Figma (current site uses system/sans-serif)
-  Hero Headings:   48-64px, font-weight 800-900
-  Section Headings: 32-40px, font-weight 700
-  Body:            16-18px, font-weight 400
-  Small:           14px
-
-Buttons:
-  Primary:    bg-primary, text-white, rounded-full, px-8 py-3
-  Secondary:  bg-white, border border-gray-300, text-secondary, rounded-full
-  Ghost:      bg-transparent, text-primary, underline
-
-Cards:
-  border: 1px solid primary (thin purple border)
-  border-radius: 12-16px
-  shadow: subtle on hover
-
-Spacing & Layout:
-  Max content width: 1280px
-  Section padding: py-16 to py-24
-  Grid gap: gap-6 to gap-8
-```
+You have been handed:
+- `CLAUDE.md` — this file (your complete specification)
+- `DESIGN_AUDIT.md` — the 20 UX/conversion fixes you must implement on every page
+- `CONTENT.md` — all copy, pricing, USPs, brand voice, and page-by-page content
+- `COMPONENTS.md` — every reusable HTML component with exact markup
+- `shared/tokens.css` — design tokens (colours, spacing, typography, shadows, radius)
+- `shared/components.css` — reusable component styles
+- `shared/layout.css` — grid, container, section styles
+- `shared/nav.css` — navigation styles
+- `shared/footer.css` — footer styles
+- `shared/animations.css` — scroll reveals, transitions
+- `shared/main.js` — all shared JavaScript (nav, chat, sticky CTA, domain search, FAQ, billing toggle, currency, modals)
+- `assets/logo.svg` — the brand logo (already in place, do NOT modify)
+- `assets/icons/` — inline SVG icon library
+- Page HTML shells — every page exists as a skeleton; you fill the content
 
 ---
 
-## Repository Structure
+## 1. BRAND SPECIFICATION
 
+### Colour Palette
 ```
-onenet-servers/
-├── frontend/                    # Nuxt 3 application
-│   ├── app.vue
-│   ├── nuxt.config.ts
-│   ├── tailwind.config.ts
-│   ├── tsconfig.json
-│   ├── assets/
-│   │   ├── css/
-│   │   │   └── main.css         # Tailwind directives + global styles
-│   │   ├── fonts/
-│   │   └── images/              # Static images, decorative SVGs
-│   ├── components/
-│   │   ├── layout/              # AppHeader, AppFooter, MobileNav, PromoBar
-│   │   ├── ui/                  # BaseButton, BaseCard, BaseInput, etc.
-│   │   ├── blocks/              # CMS-driven block components
-│   │   └── shared/              # GoogleRating, PriceDisplay, DomainSearchWidget
-│   ├── composables/             # useDirectus, useWhmcs, useSeo, etc.
-│   ├── layouts/
-│   │   ├── default.vue
-│   │   └── blank.vue            # For legal pages, minimal layout
-│   ├── pages/
-│   │   ├── index.vue            # Homepage
-│   │   └── [...slug].vue        # Dynamic CMS-driven pages
-│   ├── server/
-│   │   ├── api/
-│   │   │   └── whmcs/           # Secure WHMCS API proxy routes
-│   │   └── middleware/
-│   ├── plugins/
-│   ├── types/                   # TypeScript type definitions
-│   │   ├── cms.ts
-│   │   ├── whmcs.ts
-│   │   └── ui.ts
-│   ├── services/
-│   │   └── whmcs/               # WHMCS client class
-│   └── utils/                   # Currency formatters, helpers
-├── cms/                         # Directus configuration
-│   ├── snapshots/               # Directus schema snapshots (migrations)
-│   ├── seeds/                   # Initial content seed data
-│   ├── extensions/              # Custom Directus hooks/endpoints
-│   └── uploads/                 # Asset exports from current site
-├── docker/
-│   ├── docker-compose.yml       # Local dev: Directus + PostgreSQL
-│   ├── docker-compose.prod.yml  # Production: full stack
-│   ├── nginx/
-│   │   └── default.conf         # Nginx reverse proxy config
-│   └── Dockerfile.frontend
-├── docs/
-│   ├── cms-editor-guide.md      # How editors create pages with blocks
-│   ├── whmcs-integration.md     # WHMCS API integration documentation
-│   └── deployment.md            # VPS deployment guide
-├── .github/
-│   └── workflows/
-│       ├── ci.yml               # Lint, typecheck, test on PR
-│       └── deploy.yml           # Deploy to VPS on push to main
-├── .env.example
-├── .eslintrc.cjs
-├── .prettierrc
-├── CLAUDE.md                    # This file
-└── README.md
+Primary blue:       #4343F0   (buttons, links, icons, active states)
+Blue dark:          #3535C8   (hover states)
+Blue light:         #6868F3   (gradients)
+Blue extra light:   #EEEEFF   (backgrounds, badges)
+Blue extra xs:      #F5F5FF   (page tints)
+
+Ink (headings):     #0F0F1A
+Body text:          #3D3D5C
+Muted text:         #7878A0
+Border/line:        #E4E4F0
+Background:         #FFFFFF
+Background alt:     #F8F8FD
+Background 3:       #F0F0FA
+
+Green (success):    #10B981
+Amber (NGN price):  #F59E0B
+Red (error):        #EF4444
 ```
+
+### Typography
+- **Primary font:** Inter — weights 300, 400, 500, 600 ONLY. **Never use 700 or 800.**
+- **Secondary font:** Lato — weights 300, 400 (italic 300, italic 400). Used for body copy paragraphs, plan descriptions, feature descriptions, testimonials.
+- **Monospace:** JetBrains Mono — for prices, code, domain chips, registration numbers.
+- Load via Google Fonts: `https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lato:ital,opsz,wght@0,6..12,300;0,6..12,400;1,6..12,300&family=JetBrains+Mono:wght@400;500&display=swap`
+
+### Logo
+The logo is at `../assets/logo.svg` (or `assets/logo.svg` from root). It is the full wordmark with the cloud/server icon. Use it inline via `<img>` or `<object>`. The icon-only mark is the `<path>` elements 2–7 of the SVG (the cloud shape). Never recolour the logo.
+
+### Voice & Tone
+- Confident but not arrogant. Direct. Human.
+- Never corporate-speak. Never "leverage", "synergy", "cutting-edge".
+- Gen Z and Millennial primary audience. They read fast, scan first, read when convinced.
+- Nigerian and UK market simultaneously. Naira prices are amber `#F59E0B`. GBP prices are shown as secondary.
+- Psychological conversion principles: outcome-first headlines, loss aversion, social proof proximate to price, risk reversal, objection elimination.
 
 ---
 
-## PHASE 1 — Project Scaffolding & Infrastructure
+## 2. THE 20 FIXES — IMPLEMENT ON EVERY RELEVANT PAGE
 
-### Task 1.1: Initialize Nuxt 3 Project
-- Run `npx nuxi@latest init frontend` with TypeScript enabled
-- Configure `nuxt.config.ts`:
-  - Enable SSR
-  - Register Tailwind CSS module (`@nuxtjs/tailwindcss`)
-  - Register Nuxt Image module (`@nuxt/image`)
-  - Register Nuxt SEO module (`@nuxtjs/seo`)
-  - Set app head defaults (charset, viewport, favicon)
-  - Configure runtime config for `DIRECTUS_URL`, `WHMCS_API_URL`, `WHMCS_API_IDENTIFIER`, `WHMCS_API_SECRET`, `SITE_URL`
-- Configure `tailwind.config.ts` with the brand design tokens above
-- Set up `tsconfig.json` with strict mode and path aliases
-- Install and configure ESLint (`@nuxt/eslint-config`) + Prettier
-- Create `.env.example` with all required environment variables
+These are non-negotiable. Every fix must be visible in the delivered HTML.
 
-### Task 1.2: Directus CMS Docker Setup
-- Create `docker/docker-compose.yml`:
-  - `directus` service: latest Directus image, port 8055
-  - `postgres` service: PostgreSQL 15, persistent volume
-  - Shared network
-- Configure Directus environment:
-  - `ADMIN_EMAIL`, `ADMIN_PASSWORD`
-  - `DB_CLIENT=pg`, connection to postgres service
-  - `PUBLIC_URL=http://localhost:8055` (dev) / `https://cms.onenetservers.net` (prod)
-  - `CORS_ENABLED=true`, `CORS_ORIGIN` set to frontend URL
-  - `STORAGE_LOCATIONS=local`
-- Create Directus roles: `Admin`, `Editor` (can manage content, cannot manage schema), `API` (read-only, for frontend)
-- Generate a static API token for the `API` role (used by Nuxt)
+### Fix 1 — Floating Chat Button
+Every page has a fixed chat FAB (floating action button) bottom-right. HTML:
+```html
+<button class="chat-fab" aria-label="Open live chat" onclick="openChat()">
+  <!-- chat icon SVG -->
+  <span class="chat-fab-label">Chat with us</span>
+</button>
+```
+On mobile it sits at `bottom: 80px; right: 16px` so it clears the sticky CTA bar.
 
-### Task 1.3: WHMCS API Service Layer
-Create `frontend/services/whmcs/WhmcsClient.ts`:
+### Fix 2 — Competitor Comparison Section
+Web Hosting, WordPress, VPS, Reseller, and Email pages each have a `<section class="comparison-section">` with a 5-column table: Feature | OneNet | Competitor A | Competitor B | Competitor C. OneNet column is visually highlighted. Competitors are generic ("Popular UK Host", "Budget NG Host") — no brand names.
 
-```typescript
-// This class is ONLY used server-side (in /server/api/whmcs/ routes)
-// API credentials never reach the client
-class WhmcsClient {
-  private baseUrl: string
-  private identifier: string
-  private secret: string
+### Fix 3 — Annual/Monthly Toggle with Savings Badge
+Every pricing section (Homepage preview AND all product pages) has the billing toggle visible. The `data-m` and `data-a` attributes on price elements allow `main.js` to swap values. The "Save up to 35%" badge is always visible next to the Annual label.
 
-  // Methods to implement:
-  async checkDomainAvailability(domain: string): Promise<DomainCheckResult>
-  async getTldPricing(): Promise<TldPricingResult>
-  async getProducts(groupId?: number): Promise<ProductsResult>
-  async addToCart(params: CartAddParams): string  // Returns WHMCS cart URL
-  async addClient(params: ClientParams): Promise<ClientResult>
-  async createSsoToken(clientId: number): Promise<SsoTokenResult>
-  async getInvoices(clientId: number): Promise<InvoicesResult>
+### Fix 4 — Hero Objection Kill (Micro-copy under CTA)
+Every hero CTA button is followed immediately by:
+```html
+<div class="cta-reassurance">
+  <span class="reassurance-item">
+    <svg><!-- check icon --></svg> No credit card required
+  </span>
+  <span class="reassurance-item">
+    <svg><!-- check icon --></svg> Cancel anytime
+  </span>
+  <span class="reassurance-item">
+    <svg><!-- check icon --></svg> Free migration included
+  </span>
+</div>
+```
+
+### Fix 5 — Proximate Social Proof Above Pricing
+Every pricing section is preceded by a 3-avatar + star rating + quote strip:
+```html
+<div class="pricing-proof">
+  <div class="proof-avatars"><!-- 4 avatar divs --></div>
+  <div class="proof-stars">★★★★★</div>
+  <p class="proof-quote">"Migrated from Bluehost, load time went from 4s to under 800ms." — Adebola O.</p>
+</div>
+```
+
+### Fix 6 — How It Works Section
+Homepage and all product pages have a 3-step "How it works" section:
+- Step 1: Choose your plan
+- Step 2: We set up your environment (automated, 2–5 minutes)  
+- Step 3: You go live (we support every step)
+Use numbered circles, connected by a subtle line, icons per step.
+
+### Fix 7 — Nigerian Market Section (Homepage only)
+A dedicated section on the homepage titled "Built for Nigeria. Powered from London." with: naira payment via Paystack, NiRA accreditation, .ng domain specialisation, local support hours, SCUML compliance, Digital Identity Initiative CTA.
+
+### Fix 8 — Sticky CTA Bar on Product Pages
+Web Hosting, WordPress, VPS, Reseller, SSL, OneGuard pages each have:
+```html
+<div class="sticky-cta" id="sticky-cta">
+  <div class="sticky-cta-text">
+    <strong>Web Hosting from $3.99/mo</strong> · LiteSpeed · CloudLinux · 30-day guarantee
+  </div>
+  <div class="sticky-cta-actions">
+    <a href="#plans" class="btn btn-white btn-sm">See plans</a>
+    <a href="/checkout" class="btn btn-primary btn-sm">Get started</a>
+  </div>
+</div>
+```
+The bar appears after the user scrolls 600px past the hero. It hides when the footer is visible.
+
+### Fix 9 — Domain Search with Result State
+The domain search bar (Homepage hero and Domains page) shows a result state after the user types and hits Search:
+- Available: green background, "✓ yourdomain.ng is available — £X/yr" + "Register now" CTA
+- Taken: red background, "✗ yourdomain.ng is taken — try yourdomain.com.ng" + alternative suggestions
+For the prototype, simulate with JS: domains ending in `.available` show green; all others show "Try these alternatives".
+
+### Fix 10 — Security Trust Badge Strip (Product page heroes)
+Every product page hero (below the headline/sub copy, above the CTA) has a horizontal strip of 5 badges:
+30-day MBG · Free SSL · NiRA Accredited · SCUML · UK Registered
+HTML: `<div class="hero-trust-strip"><div class="trust-badge">...</div></div>`
+
+### Fix 11 — Currency Switcher in Nav
+The nav has a compact currency selector: `NGN | GBP | USD`. Selecting one updates all prices on the page via `main.js`. Default is auto-detected from `navigator.language` (en-NG → NGN, en-GB → GBP, else USD).
+
+### Fix 12 — Lottie Animations on "Included Features" Cards
+The "What's included" / "All plans include" section uses `<lottie-player>` on the icon of 3 of the 6 cards (alternating). Use public LottieFiles CDN URLs. The lottie-player script is loaded in `<head>`.
+
+### Fix 13 — Exit Intent / Scroll Depth Email Capture
+A bottom-of-page floating bar (NOT a modal) appears when the user has scrolled 85% of the page and hasn't started filling in a form:
+```html
+<div class="exit-bar" id="exit-bar">
+  <p>Not ready yet? Get our <strong>free domain transfer checklist</strong>.</p>
+  <form class="exit-bar-form">
+    <input type="email" placeholder="your@email.com">
+    <button type="submit" class="btn btn-primary btn-sm">Send it free</button>
+  </form>
+  <button class="exit-bar-close">✕</button>
+</div>
+```
+
+### Fix 14 — Phone Numbers in Footer
+Both phone numbers must appear in the footer contact column:
+- 🇳🇬 Nigeria: +234 201 330 9154
+- 🇬🇧 UK: +44 7333 880 7775
+- Email: support@onenetservers.net
+
+### Fix 15 — Future of Productivity Community Section (Homepage)
+A section after the DII block promoting the "Future of Productivity" monthly event series. Free to attend. SDG 4, 8, 10 aligned. CTA: "View upcoming events →"
+
+### Fix 16 — Meta Tags / SEO on Every Page
+Every HTML file's `<head>` must include:
+```html
+<meta name="description" content="[page-specific 155 char description]">
+<meta property="og:title" content="[Page Title] | OneNet Servers">
+<meta property="og:description" content="[same as meta description]">
+<meta property="og:image" content="https://onenetservers.net/assets/og-[page].jpg">
+<meta property="og:url" content="https://onenetservers.net/[path]">
+<link rel="canonical" href="https://onenetservers.net/[path]">
+```
+Plus FAQPage JSON-LD schema on all product pages, Organization JSON-LD on homepage, BreadcrumbList on all inner pages.
+
+### Fix 17 — Lottie CDN Fallback
+Every `<lottie-player>` element has a `<noscript>` fallback image and a static SVG/CSS animation fallback class that activates if the Lottie script fails to load. The script is loaded with `defer` and a `try/catch` wrapper in `main.js`.
+
+### Fix 18 — Comparison Table Mobile Scroll Indicator
+The comparison table wrapper has:
+```html
+<div class="table-scroll-wrap">
+  <div class="table-scroll-hint">← Swipe to compare →</div>
+  <div class="table-inner"><!-- table --></div>
+</div>
+```
+The hint hides once the user has scrolled the table horizontally.
+
+### Fix 19 — Reseller Page
+`hosting/reseller.html` must exist as a full page (not a stub). It includes: hero, how it works (for agencies), 4 plan cards (RSL Starter → RSL Enterprise), white-label feature list, WHMCS billing section, comparison table, testimonial, FAQ, CTA.
+
+### Fix 20 — Client Area / Dashboard Preview
+The hero section of the Web Hosting page, WordPress page, and VPS page each include a stylised browser chrome mockup showing a blurred-but-legible screenshot-style illustration of: the Plesk panel (Web Hosting), PanelAlpha (WordPress), or a VPS terminal + stats card (VPS). Built entirely in CSS/HTML — no real screenshots needed.
+
+---
+
+## 3. COMPLETE PAGE LIST
+
+Build ALL of these. No stubs, no "coming soon" pages.
+
+### Root
+| File | URL | Title |
+|------|-----|-------|
+| `index.html` | `/` | Home |
+| `about.html` | `/about` | About Us |
+| `contact.html` | `/contact` | Contact Us |
+| `digital-identity.html` | `/digital-identity` | Digital Identity Initiative |
+| `community.html` | `/community` | Future of Productivity |
+
+### Hosting
+| File | URL | Title |
+|------|-----|-------|
+| `hosting/web.html` | `/hosting/web` | Web Hosting |
+| `hosting/wordpress.html` | `/hosting/wordpress` | WordPress Hosting |
+| `hosting/reseller.html` | `/hosting/reseller` | Reseller Hosting |
+| `hosting/vps.html` | `/hosting/vps` | Cloud VPS |
+
+### Domains
+| File | URL | Title |
+|------|-----|-------|
+| `domains/index.html` | `/domains` | Domain Registration |
+| `domains/transfer.html` | `/domains/transfer` | Domain Transfer |
+| `domains/ng.html` | `/domains/ng` | .NG Domains |
+
+### Security
+| File | URL | Title |
+|------|-----|-------|
+| `security/ssl.html` | `/security/ssl` | SSL Certificates |
+| `security/oneguard.html` | `/security/oneguard` | OneGuard Security |
+
+### Email
+| File | URL | Title |
+|------|-----|-------|
+| `email/index.html` | `/email` | Business Email |
+
+### Legal
+| File | URL | Title |
+|------|-----|-------|
+| `legal/terms.html` | `/legal/terms` | Terms of Service |
+| `legal/privacy.html` | `/legal/privacy` | Privacy Policy |
+| `legal/agreement.html` | `/legal/agreement` | Hosting Agreement |
+
+---
+
+## 4. SHARED FILES — BUILD THESE FIRST
+
+Before touching any page, complete all files in `shared/`:
+
+### `shared/tokens.css`
+Already partially written. Complete it with all CSS custom properties. Do not change any values — only add what's missing.
+
+### `shared/components.css`
+All reusable component styles: buttons, badges, cards, icon boxes, trust bar, pricing cards, FAQ accordion, comparison table, sticky CTA, chat FAB, exit bar, domain search, billing toggle, hero trust strip, testimonial cards, stat items.
+
+### `shared/layout.css`
+Container system, section padding, grid helpers, responsive breakpoints:
+- Mobile: `< 480px`
+- Tablet: `480px – 768px`  
+- Laptop: `768px – 1024px`
+- Desktop: `1024px – 1280px`
+- Wide: `> 1280px`
+
+### `shared/nav.css`
+Navigation: fixed, transparent → frosted glass on scroll. Mobile: hamburger → full-screen drawer. Currency selector. All hover/active states.
+
+### `shared/footer.css`
+5-column footer grid, brand column, social icons, legal strip, responsive collapse.
+
+### `shared/animations.css`
+`.reveal` class: opacity 0 → 1, translateY 24px → 0. Stagger delay classes `.d1`–`.d6`. Lottie floating animation. Trust bar scroll animation. Badge pulse.
+
+### `shared/main.js`
+One JS file, zero dependencies. Implements:
+1. Nav scroll behaviour (transparent → stuck)
+2. Mobile menu open/close
+3. Currency switcher (NGN/GBP/USD) — updates all `[data-ngn]`, `[data-gbp]`, `[data-usd]` elements
+4. Billing toggle (monthly/annual) — updates all `[data-m]`, `[data-a]` elements
+5. Scroll reveal (IntersectionObserver)
+6. Sticky CTA bar (appears at 600px scroll, hides when footer visible)
+7. Chat FAB click handler (opens Crisp or logs placeholder)
+8. Domain search result simulation
+9. FAQ accordion
+10. Comparison table scroll hint
+11. Exit/scroll-depth bar (fires at 85% scroll depth, once per session via sessionStorage)
+12. Pricing tab switcher (homepage preview)
+13. Mobile menu
+14. Smooth anchor scrolling
+
+---
+
+## 5. PAGE-BY-PAGE SECTION SPECIFICATION
+
+### index.html (Homepage)
+
+**Sections in order:**
+1. `<nav>` — shared nav with currency switcher
+2. `#hero` — Split layout: left (badge, H1, sub, domain search, micro-copy reassurance, social proof row), right (browser chrome card with stats + Lottie)
+3. `#trust-bar` — scrolling trust strip
+4. `#services` — service cards grid (WP featured wide, Domain, Web Hosting, Email, VPS, Reseller — 2×3)
+5. `#how-it-works` — 3-step process (Fix 6)
+6. `#why` — split: Lottie left, 5 feature items right
+7. `#pricing` — tab switcher preview + 4 plan cards + billing toggle (Fix 3) + proximate social proof (Fix 5)
+8. `#nigeria` — Nigerian market section (Fix 7)
+9. `#dii` — Digital Identity Initiative card
+10. `#community` — Future of Productivity (Fix 15)
+11. `#credentials` — Stats + 4 credential cards
+12. `#testimonials` — 3 testimonial cards
+13. `#cta-banner` — full-width gradient CTA
+14. `<footer>` — shared footer with phone numbers (Fix 14)
+15. `.chat-fab` — floating chat (Fix 1)
+16. `.exit-bar` — scroll depth email capture (Fix 13)
+
+**Hero H1:** `Your domain.<br>Your identity.<br><em class="h-em">Your world online.</em>`
+**Hero sub (Lato 300):** "Web hosting, domains, email, and AI tools for the generation building Africa's digital future — from Lagos to London."
+
+---
+
+### hosting/web.html (Web Hosting)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — centred hero: badge, H1, sub, hero-trust-strip (Fix 10), CTA + reassurance (Fix 4), wh-stats bar (99.9% · <800ms · 9 Regions · 30-day MBG), browser chrome mockup (Fix 20)
+3. `#trust-bar`
+4. `#plans` — billing toggle (Fix 3) + proximate social proof (Fix 5) + 4 plan cards (Starter, Lite, Premium★, Ultimate)
+5. `#included` — 6 "What's included" cards, 3 with Lottie (Fix 12)
+6. `#how-it-works` — 3 steps (Fix 6)
+7. `#comparison` — competitor comparison table (Fix 2) + mobile scroll hint (Fix 18)
+8. `#testimonials` — 2 testimonials
+9. `#faq` — 6 FAQ items with accordion
+10. `#cta-banner`
+11. `<footer>` (Fix 14)
+12. `.sticky-cta` "Web Hosting from $3.99/mo" (Fix 8)
+13. `.chat-fab` (Fix 1)
+14. `.exit-bar` (Fix 13)
+
+**Hero H1:** `Web hosting that actually <em class="h-em">performs.</em>`
+
+**4 Plans:**
+| Plan | USD/mo | NGN/mo | GBP/mo | Sites | SSD | BW | Email |
+|------|--------|--------|--------|-------|-----|-----|-------|
+| Starter | $3.99 | ₦7,499 | £3.71 | 2 | 10GB | 25GB | 10 |
+| Lite | $9.75 | ₦13,999 | £9.07 | 3 | 30GB | 25GB | 10 |
+| Premium★ | $18.20 | ₦24,999 | £16.95 | 7 | 50GB | 55GB | 10 |
+| Ultimate | $32.50 | ₦44,999 | £30.24 | 15 | 100GB | 100GB | 25 |
+
+Annual savings: 35% on Lite, Premium, Ultimate. 2% on Starter (3-month only).
+
+**Included features (6 cards):**
+1. Free SSL Certificate (Lottie: shield animation)
+2. Daily Automated Backups
+3. ImmunifyAV+ Malware Scanning (Lottie: security scan animation)
+4. LiteSpeed + CloudLinux
+5. Plesk Control Panel
+6. Free Domain Migration (Lottie: migration animation)
+
+**Comparison table columns:** Feature | OneNet Starter | OneNet Premium | Budget NG Host | Popular UK Host
+**Rows:** Price/mo, CloudLinux isolation, LiteSpeed, ImmunifyAV+, Free migration, Free SSL, Plesk panel, Support response, 30-day MBG
+
+---
+
+### hosting/wordpress.html (WordPress Hosting)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — hero-trust-strip, H1, sub, CTA + reassurance, browser chrome mockup showing PanelAlpha (Fix 20)
+3. `#trust-bar`
+4. `#plans` — billing toggle + 4 WP plan cards
+5. `#ai-builder` — dedicated section for the AI website builder feature (Lottie of website being built)
+6. `#included` — 6 cards (Docker isolation, PanelAlpha panel, AI Builder, Staging, LiteSpeed, Daily backup)
+7. `#how-it-works` — 3 steps: Choose template → AI builds your site → Go live in minutes
+8. `#comparison` (Fix 2)
+9. `#testimonials`
+10. `#faq`
+11. `#cta-banner`
+12. `<footer>` (Fix 14)
+13. `.sticky-cta` "WordPress Hosting from $6.78/mo" (Fix 8)
+14. `.chat-fab` (Fix 1)
+15. `.exit-bar` (Fix 13)
+
+**Hero H1:** `WordPress hosting that <em class="h-em">thinks ahead.</em>`
+
+**4 Plans:**
+| Plan | USD/mo | NGN/mo | Instances | SSD | CPU | RAM |
+|------|--------|--------|-----------|-----|-----|-----|
+| WP Starter | $6.78 | ₦10,500 | 1 | 10GB | 1vCPU | 2GB |
+| WP Lite | $13.65 | ₦19,999 | 1 | 25GB | 1vCPU | 2GB |
+| WP Premium★ | $52.49 | ₦74,999 | 5 | 100GB | 2vCPU | 6GB |
+| WP Ultimate | $105.00 | ₦149,999 | 10 | 200GB | 2vCPU | 8GB |
+
+---
+
+### hosting/reseller.html (Reseller Hosting)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — audience: agencies, freelancers, developers. Hero trust strip. H1, sub, CTA + reassurance
+3. `#trust-bar`
+4. `#for-who` — 3 audience cards: "You run a web agency", "You manage 10+ client sites", "You want your own hosting brand"
+5. `#plans` — billing toggle + 4 RSL plan cards
+6. `#white-label` — white-label features section (private nameservers, your own brand, WHMCS billing, mobile billing app)
+7. `#how-it-works` — 3 steps: Pick your plan → Brand it as yours → Manage all clients from one dashboard
+8. `#included` — 6 cards (Fix 12)
+9. `#comparison` (Fix 2)
+10. `#faq`
+11. `#cta-banner`
+12. `<footer>` (Fix 14)
+13. `.sticky-cta` "Reseller Hosting from $5.39/mo" (Fix 8)
+14. `.chat-fab` (Fix 1)
+15. `.exit-bar` (Fix 13)
+
+**Hero H1:** `Your hosting brand.<br><em class="h-em">Fully yours.</em>`
+
+**4 Plans:**
+| Plan | USD/mo | NGN/mo | Storage | Sites | Email |
+|------|--------|--------|---------|-------|-------|
+| RSL Starter | $5.39 | ₦8,999 | 50GB | Unlimited | Unlimited |
+| RSL Lite | $14.30 | ₦22,999 | 100GB | Unlimited | Unlimited |
+| RSL Grow★ | $20.28 | ₦31,999 | 150GB | Unlimited | Unlimited |
+| RSL Enterprise | $28.60 | ₦44,999 | 200GB | Unlimited | Unlimited |
+
+---
+
+### hosting/vps.html (Cloud VPS)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — terminal/server visual (Fix 20), hero trust strip, H1, sub, CTA + reassurance
+3. `#trust-bar`
+4. `#plans` — billing toggle + 4 VPS plan cards
+5. `#one-click` — one-click app deploy grid: n8n, Docker, Wireguard, Nextcloud, Gitlab, LAMP, OpenLiteSpeed, Coolify — shown as icon+name tiles
+6. `#regions` — world map SVG or grid showing 9 regions with latency indicators
+7. `#specs` — detailed specs comparison table (Fix 2 + Fix 18)
+8. `#how-it-works` — 3 steps: Choose OS + region → Server provisioned in 60 seconds → Full root access
+9. `#faq`
+10. `#cta-banner`
+11. `<footer>` (Fix 14)
+12. `.sticky-cta` "Cloud VPS from $12.42/mo" (Fix 8)
+13. `.chat-fab` (Fix 1)
+14. `.exit-bar` (Fix 13)
+
+**Hero H1:** `Cloud VPS with <em class="h-em">unlimited bandwidth.</em>`
+
+**4 Plans:**
+| Plan | USD/mo | NGN/mo | RAM | vCPU | SSD | Port | Snapshots |
+|------|--------|--------|-----|------|-----|------|-----------|
+| VPS Starter | $12.42 | ₦19,999 | 8GB | 4 | 150GB | 200Mbit | 1 |
+| VPS Lite | $29.11 | ₦44,999 | 24GB | 8 | 400GB | 600Mbit | 3 |
+| VPS Premium★ | $43.61 | ₦67,999 | 48GB | 12 | 500GB | 800Mbit | 5 |
+| VPS Ultimate | $92.15 | ₦139,999 | 96GB | 18 | 700GB | 1Gbit | Unlimited |
+
+Supported OS: Ubuntu · Debian · AlmaLinux · CentOS · Rocky Linux  
+Add-ons: Windows Server (+£20/mo) · Managed service (+£30/mo) · Additional IP (+£6/mo)
+
+---
+
+### domains/index.html (Domain Registration)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — large domain search bar centred (Fix 9 with full result state), H1, sub, CTA
+3. `#tld-grid` — TLD pricing grid: cards for each extension with register price and transfer price
+4. `#ng-feature` — .NG domain specialisation section (NiRA accreditation story)
+5. `#included` — What every domain includes: WHOIS privacy, DNSSEC, DNS management, email forwarding, URL redirect, free lock
+6. `#how-it-works` — 3 steps: Search → Add to cart → Instant activation
+7. `#faq`
+8. `#cta-banner`
+9. `<footer>` (Fix 14)
+10. `.chat-fab` (Fix 1)
+11. `.exit-bar` (Fix 13)
+
+**Hero H1:** `Find your domain.<br><em class="h-em">Own your identity.</em>`
+
+**TLD Pricing Grid (from live store data):**
+| Extension | Register | Renew | Transfer | Notes |
+|-----------|----------|-------|----------|-------|
+| .com | $15.00 | $15.00 | $15.00 | |
+| .ng | $23.40 | $23.40 | $23.40 | NiRA |
+| .com.ng | $11.25 | $11.25 | $11.25 | NiRA |
+| .co.uk | $8.12 | $8.12 | $8.12 | |
+| .uk | $8.12 | $8.12 | $8.12 | |
+| .ai | $95.24 | $95.24 | $95.24 | |
+| .dev | $19.04 | $19.04 | $19.04 | |
+| .io | $44.44 | $44.44 | $44.44 | |
+| .shop | $4.99 | $4.99 | $4.99 | |
+| .cloud | $6.99 | $6.99 | $6.99 | |
+| .xyz | $3.42 | $3.42 | $3.42 | Cheapest |
+| .online | $3.80 | $3.80 | $3.80 | |
+| .name.ng | $0.00 | $1.00 | N/A | DII only |
+| .tech | $10.79 | $10.79 | $10.79 | |
+| .me | $12.69 | $12.69 | $12.69 | |
+| .net | $15.05 | $15.05 | $15.05 | |
+| .org | $13.58 | $13.58 | $13.58 | |
+
+---
+
+### domains/transfer.html (Domain Transfer)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — H1: "Transfer your domain. Get a free year." Sub: answer-first paragraph (40–60 words). Loss aversion line. Transfer form (domain input + EPP code + checkbox + CTA).
+3. `#how-it-works` — 4-step HowTo (HowTo schema): Unlock domain → Get EPP code → Enter here → We handle migration
+4. `#what-included` — What you get: free renewal year, zero downtime, DNS migration, WHOIS privacy, DNSSEC, NiRA (for .ng)
+5. `#tld-list` — Transferable TLDs table with timelines (.ng = up to 14 days, .name.ng = non-transferable)
+6. `#faq` — 7 questions (from the content spec in CONTENT.md)
+7. `#cta-banner`
+8. `<footer>` (Fix 14)
+9. `.chat-fab` (Fix 1)
+
+**Hero H1:** `Transfer your domain.<br><em class="h-em">Get a free year.</em>`
+
+**Loss aversion copy (place below the form):**
+"Your current registrar will charge full renewal price. A transfer costs the same — and adds a free year."
+
+---
+
+### security/ssl.html (SSL Certificates)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — H1: "Every site deserves HTTPS." Sub. Hero trust strip. CTA + reassurance.
+3. `#trust-bar`
+4. `#ssl-types` — 3 SSL type cards: Domain Validation (DV), Organisation Validation (OV), Extended Validation (EV). Each with: use case, issuance time, trust level visual, price.
+5. `#free-ssl` — Section explaining the free Let's Encrypt SSL included on all hosting plans
+6. `#how-it-works` — 3 steps
+7. `#what-included` — What the SSL includes: 256-bit encryption, browser padlock, Google ranking boost, phishing protection
+8. `#faq` — 5 questions
+9. `#cta-banner`
+10. `<footer>` (Fix 14)
+11. `.sticky-cta` (Fix 8)
+12. `.chat-fab` (Fix 1)
+
+**SSL Pricing:**
+| Type | Cert | Price/yr | Issuance | Warranty |
+|------|------|----------|----------|---------|
+| Free | Let's Encrypt DV | Included with all hosting | Minutes | — |
+| Standard DV | Single domain | $9.99/yr | Minutes | $10K |
+| Wildcard DV | All subdomains | $49.99/yr | Minutes | $10K |
+| OV Standard | Organisation validated | $79.99/yr | 1–3 days | $1.25M |
+| EV Certificate | Green bar / full validation | $149.99/yr | 3–5 days | $1.75M |
+
+---
+
+### security/oneguard.html (OneGuard Security)
+
+**Sections in order:**
+1. `<nav>`
+2. `#hero` — Dark-tinted hero section (exception to light theme — hero only has a near-black background `#0F0F1A` with blue accents). H1: "Complete website security. One subscription."
+3. `#trust-bar`
+4. `#what-is` — What OneGuard is: explanation section, key features list
+5. `#features` — 6 feature cards: Real-time malware scan, Daily automated backup, Vulnerability patching, DDoS protection, Blacklist monitoring, SSL certificate monitoring
+6. `#how-it-works` — 3 steps
+7. `#pricing` — Single plan card: OneGuard at $466.70/yr (£432/yr · ₦699,999/yr) — annual only
+8. `#comparison` — OneGuard vs. No protection vs. Competitor security tool (Fix 2)
+9. `#faq`
+10. `#cta-banner`
+11. `<footer>` (Fix 14)
+12. `.sticky-cta` "Protect your site for $466.70/yr" (Fix 8)
+13. `.chat-fab` (Fix 1)
+
+**Hero H1:** `Complete website security.<br><em style="color:#6868F3">One subscription.</em>`
+**OneGuard price:** $466.70/yr · £432/yr · ₦699,999/yr (annual only, no monthly option)
+
+---
+
+## 6. NAVIGATION SPECIFICATION
+
+### Desktop Nav (sticky, frosted glass after 60px scroll)
+```
+[Logo] [Domains ▾] [Hosting ▾] [Email] [Security ▾] [Community] ... [NGN|GBP|USD] [Log in] [Get started]
+```
+
+**Domains dropdown:**
+- Register a Domain
+- Transfer a Domain  
+- .NG Domains
+- Domain Transfer
+
+**Hosting dropdown (3 columns):**
+- Col 1 — Shared: Web Hosting, WordPress Hosting, Reseller Hosting
+- Col 2 — Email & Tools: Business Email, Web Design (coming)
+- Col 3 — Infrastructure: Cloud VPS, Garium AI (coming)
+
+**Security dropdown:**
+- OneGuard Security
+- SSL Certificates
+
+### Mobile Nav
+- Hamburger at 768px → full-height right drawer
+- Accordion for dropdowns
+- Currency selector at bottom of drawer
+- Two CTA buttons (Log in ghost, Get started primary) at bottom
+
+---
+
+## 7. FOOTER SPECIFICATION
+
+**5 columns:**
+
+**Col 1 — Brand**
+- Logo (img, 28px height)
+- Tagline: "AI-powered hosting, domains, and email for businesses building Africa's digital future — from Lagos to London."
+- Social icons: X, LinkedIn, Instagram, YouTube (SVG, 13px, ghost square buttons)
+
+**Col 2 — Hosting**
+- Web Hosting
+- WordPress Hosting
+- Reseller Hosting
+- Cloud VPS
+- Garium Private AI
+
+**Col 3 — Domains**
+- Register a Domain
+- Transfer a Domain
+- .NG Domains
+- .COM.NG
+- TLD Pricing
+
+**Col 4 — Tools & Security**
+- Business Email
+- SSL Certificates
+- OneGuard Security
+- Web Design
+- Future of Productivity
+
+**Col 5 — Company & Contact**
+- About Us
+- Contact Us
+- Digital Identity Initiative
+- **🇳🇬 +234 201 330 9154**   ← Fix 14
+- **🇬🇧 +44 7333 880 7775**   ← Fix 14
+- **support@onenetservers.net**
+
+**Trust badge row (between columns and legal strip):**
+NiRA Accredited | UK RC:14565201 | NG RC:1775966 | SCUML Registered | Green Infrastructure | Tech Nation
+
+**Legal strip:**
+"© 2026 OneNet Servers — trading name of ConqolX Technologies Limited. Registered in England & Wales No. 14565201. Registered in Nigeria No. 1775966. SCUML registered. NiRA accredited. Prices shown exclude applicable VAT. Renewal prices may differ from first-term prices."
+
+---
+
+## 8. SCHEMA / JSON-LD (inject in `<head>` of each page)
+
+### Homepage (`index.html`)
+```json
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "name": "OneNet Servers",
+      "url": "https://onenetservers.net",
+      "logo": "https://onenetservers.net/assets/logo.svg",
+      "sameAs": ["https://twitter.com/onenetservers","https://linkedin.com/company/onenetservers"],
+      "contactPoint": [
+        { "@type": "ContactPoint", "telephone": "+2342013309154", "contactType": "customer support", "areaServed": "NG" },
+        { "@type": "ContactPoint", "telephone": "+447333880775", "contactType": "customer support", "areaServed": "GB" }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "url": "https://onenetservers.net",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://onenetservers.net/domains?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
 }
 ```
 
-Create Nuxt server API routes in `frontend/server/api/whmcs/`:
+### Product pages — add FAQPage schema
+Build from the FAQ items in each page section. Each page has a `<script type="application/ld+json">` block with the FAQPage schema listing all Q&A pairs.
 
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/whmcs/domain-check` | POST | Check domain availability via `DomainWhois` |
-| `/api/whmcs/tld-pricing` | GET | Get all TLD pricing (cached 1 hour) |
-| `/api/whmcs/products` | GET | Get hosting products and pricing |
-| `/api/whmcs/cart-url` | POST | Generate WHMCS cart URL with product/domain params |
-| `/api/whmcs/register` | POST | Register new client via `AddClient` |
-| `/api/whmcs/sso` | POST | Generate SSO auto-login URL via `CreateSsoToken` |
+### Domain Transfer page — add HowTo schema
+4-step HowTo for the transfer process.
 
 ---
 
-## PHASE 2 — Directus CMS Schema & Content Models
+## 9. LOTTIE ANIMATIONS
 
-All collections should be created via Directus schema snapshots for reproducibility. Store snapshots in `cms/snapshots/`.
-
-### Task 2.1: `site_settings` (Singleton)
-| Field | Type | Notes |
-|---|---|---|
-| `site_name` | string | "OneNet Servers" |
-| `tagline` | string | "Your Website, Always Up!" |
-| `logo` | file (SVG) | |
-| `logo_dark` | file (SVG) | White version for dark backgrounds |
-| `phone_primary` | string | "02013-309-154" |
-| `phone_international` | string | "+4473338807775" |
-| `email` | string | "support@onenetservers.net" |
-| `address` | text | "VeniaHub 8, The Providence St, Lekki Phase 1, Lagos 100252, Nigeria" |
-| `address_map_url` | string | Google Maps link |
-| `google_rating` | decimal | 4.9 |
-| `google_review_count` | integer | 20 |
-| `google_review_url` | string | Google review page URL |
-| `social_facebook` | string | "https://www.facebook.com/onenetservers/" |
-| `social_twitter` | string | "https://www.twitter.com/_onenetservers" |
-| `social_instagram` | string | "https://www.instagram.com/onenet.servers" |
-| `social_linkedin` | string | "https://www.linkedin.com/company/onenetservers" |
-| `social_youtube` | string | "https://www.youtube.com/@onenetservers" |
-| `promo_bar_enabled` | boolean | |
-| `promo_bar_text` | string | "Ready to launch your business or personal online presence? Get started with 30% off!" |
-| `promo_bar_cta_text` | string | "Get Started" |
-| `promo_bar_cta_url` | string | WHMCS cart URL with promo code |
-| `company_name` | string | "ConqolX Technologies Limited" |
-| `company_reg_number` | string | "RC-1775966" |
-| `copyright_year_start` | integer | 2015 |
-| `payment_methods` | JSON | Array of {name, logo} for Flutterwave, Stripe, Bitcoin, PayPal |
-| `live_chat_enabled` | boolean | |
-| `live_chat_provider` | string | "brevo" |
-| `live_chat_widget_id` | string | |
-
-### Task 2.2: `navigation` Collection
-| Field | Type | Notes |
-|---|---|---|
-| `id` | auto UUID | |
-| `label` | string | Display text |
-| `url` | string (nullable) | Internal path or external URL |
-| `icon` | file (nullable) | SVG icon for mega-menu items |
-| `description` | string (nullable) | Subtitle text in mega-menu dropdown |
-| `parent` | M2O self-reference | null = top-level |
-| `sort` | integer | |
-| `location` | enum | `main_menu`, `footer_products`, `footer_tools`, `footer_company`, `footer_resources` |
-| `is_external` | boolean | Opens in new tab |
-
-Seed data for main_menu (from live site):
-```
-Domains (parent)
-  ├── Register Domain Name -> /register-domain-name/
-  ├── Domain Transfer -> /domain-transfer/
-  └── Domains Resources -> https://host.onenetservers.net/knowledgebase/7/Domain
-Hosting (parent)
-  ├── Web Hosting -> /web-hosting
-  ├── WordPress Hosting -> /wordpress-hosting
-  └── Reseller Hosting -> /reseller-hosting
-Email & Security (parent)
-  ├── Business eMail -> /business-email
-  ├── OneGuard Security -> /oneweb-guard/
-  └── Premium SSL Certificate -> /ssl-certificates/
-Hire Us (parent)
-  ├── Web Design -> /our-services/website-design/
-  ├── SEO & Content Creation -> (coming soon)
-  └── All Our Services -> /our-services/
+Load the player once in `<head>`:
+```html
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
 ```
 
-Sign-in dropdown items (hardcoded in component, not CMS-driven):
-```
-Client Area -> https://host.onenetservers.net/login
-Business eMail -> https://odinson.onenetservers.com:100/
-WordPress Cloud Hosting -> https://kent.onenetservers.com/login
-Plesk Hosting Panel -> https://hank.onenetservers.com:8443/
-Reseller Hosting Panel -> https://odinson.onenetservers.com:8443/
-```
+Use these public CDN URLs:
+| Purpose | URL |
+|---------|-----|
+| Server/cloud animation | `https://assets6.lottiefiles.com/packages/lf20_qp1q7mct.json` |
+| Globe/domain animation | `https://assets10.lottiefiles.com/packages/lf20_jcikwtux.json` |
+| Shield/security animation | `https://assets9.lottiefiles.com/packages/lf20_w51pcehl.json` |
+| Server rack animation | `https://assets5.lottiefiles.com/packages/lf20_sy6bevyc.json` |
+| Celebration/DII animation | `https://assets3.lottiefiles.com/packages/lf20_qp1q7mct.json` |
 
-### Task 2.3: `pages` Collection (Page Builder)
-| Field | Type | Notes |
-|---|---|---|
-| `id` | auto UUID | |
-| `title` | string | |
-| `slug` | string (unique) | URL path |
-| `meta_title` | string | SEO title |
-| `meta_description` | text | SEO description |
-| `og_image` | file | |
-| `status` | enum | `published`, `draft`, `archived` |
-| `date_created` | datetime | Auto |
-| `date_updated` | datetime | Auto |
-| `blocks` | M2A (Many-to-Any) | Ordered list of block items |
-
-Use Directus **Many-to-Any (M2A)** relationship for the `blocks` field. This allows editors to add any combination of block types in any order to build pages.
-
-### Task 2.4: Block Collections
-
-Create each of these as a separate Directus collection. The `pages.blocks` M2A field references all of them.
-
-**`block_hero`**
-| Field | Type |
-|---|---|
-| `eyebrow_text` | string |
-| `headline` | string |
-| `description` | text |
-| `image` | file |
-| `bullet_points` | JSON array of `{text: string, tooltip?: string}` |
-| `primary_cta_text` | string |
-| `primary_cta_url` | string |
-| `secondary_cta_text` | string |
-| `secondary_cta_url` | string |
-| `show_google_rating` | boolean |
-| `trial_note_text` | string |
-| `variant` | enum: `split` (text+image), `centered`, `full_bg_image` |
-
-**`block_tabbed_hero`** (Homepage-specific — hero with tab switcher)
-| Field | Type |
-|---|---|
-| `tabs` | JSON array of `{label: string, id: string}` |
-| `tab_contents` | O2M -> `block_tabbed_hero_item` |
-
-**`block_tabbed_hero_item`**
-| Field | Type |
-|---|---|
-| `tab_id` | string (matches parent tab id) |
-| `headline` | string |
-| `description` | text |
-| `bullet_points` | JSON array of `{text: string, tooltip?: string}` |
-| `image` | file |
-| `primary_cta_text` | string |
-| `primary_cta_url` | string |
-| `secondary_cta_text` | string |
-| `secondary_cta_url` | string |
-| `note_text` | string |
-
-**`block_pricing_section`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `toggle_tabs` | JSON array of `{label: string, category: string}` |
-| `plans` | O2M -> `pricing_plan` |
-| `included_features_headline` | string |
-| `included_features` | JSON array of `{icon: string, title: string, description: string}` |
-| `footer_notes` | JSON array of strings |
-
-**`pricing_plan`**
-| Field | Type |
-|---|---|
-| `name` | string |
-| `emoji` | string (optional, e.g., "sparkle") |
-| `badge_text` | string (e.g., "For SMEs/Single Sites") |
-| `description` | text |
-| `price` | decimal |
-| `currency_symbol` | string (default "NGN") |
-| `billing_period` | string (e.g., "Per month") |
-| `discount_label` | string (e.g., "+2 months Free") |
-| `savings_label` | string (e.g., "Saved NGN37,800/yr") |
-| `cta_text` | string |
-| `cta_url` | string (WHMCS cart URL with pid and billing cycle) |
-| `features` | JSON array of strings |
-| `is_featured` | boolean |
-| `category` | enum: `wp_hosting`, `web_hosting`, `reseller`, `email`, `ssl`, `oneguard` |
-| `sort` | integer |
-
-**`block_features_grid`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `features` | JSON array of `{icon: string, title: string, description: string}` |
-| `columns` | integer (2, 3, or 4) |
-| `variant` | enum: `card_bordered`, `icon_left`, `minimal` |
-| `background` | enum: `white`, `light`, `dark` |
-
-**`block_domain_search`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `placeholder_text` | string |
-| `button_text` | string (e.g., "Search Domain" or "Transfer Domain") |
-| `action_type` | enum: `register`, `transfer` |
-| `show_whois_note` | boolean |
-| `whois_note_text` | string |
-| `footer_text` | string |
-| `footer_link_text` | string |
-| `footer_link_url` | string |
-| `background` | enum: `white`, `light` |
-
-**`block_domain_pricing_carousel`**
-| Field | Type |
-|---|---|
-| `tld_prices` | O2M -> `domain_tld_price` |
-| `footer_text` | string |
-
-**`domain_tld_price`**
-| Field | Type |
-|---|---|
-| `tld` | string (e.g., ".com", ".ng", ".ai") |
-| `regular_price` | string |
-| `sale_price` | string |
-| `currency_symbol` | string |
-| `badge` | enum (nullable): `new`, `hot`, `sale` |
-| `sort` | integer |
-
-Seed TLDs from the live site: .com, .africa, .io, .estate, .co, .ai, .ng, .dev, .shop, .com.ng, .info, .biz
-
-**`block_text_with_image`**
-| Field | Type |
-|---|---|
-| `eyebrow` | string |
-| `headline` | string |
-| `description` | text |
-| `image` | file |
-| `image_position` | enum: `left`, `right` |
-| `bullet_points` | JSON array of `{icon: string, title: string, description: string}` |
-| `cta_text` | string |
-| `cta_url` | string |
-| `background` | enum: `white`, `light`, `dark` |
-| `show_uptime_badge` | boolean |
-| `show_support_badge` | boolean |
-
-**`block_performance_chart`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `tech_icons` | JSON array of file references (WordPress, PHP, LiteSpeed, etc.) |
-| `chart_bars` | JSON array of `{label: string, value: number, sublabel: string, color: string}` |
-| `faster_badge_text` | string (e.g., "5x faster") |
-| `cta_text` | string |
-| `cta_url` | string |
-
-**`block_global_reach`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `map_image` | file |
-| `stats` | JSON array of `{label: string, value: string}` |
-
-**`block_testimonials`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `show_google_rating` | boolean |
-| `testimonials` | O2M -> `testimonial` |
-
-**`testimonial`**
-| Field | Type |
-|---|---|
-| `source_name` | string (e.g., "HostingPill", "HostAdvice", "WebsitePlanet") |
-| `source_logo` | file |
-| `rating` | integer (1-5) |
-| `content` | text |
-| `read_more_url` | string |
-| `sort` | integer |
-
-**`block_faq`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `subtext` | string |
-| `show_search` | boolean |
-| `search_placeholder` | string |
-| `category_tabs` | JSON array of `{label: string, id: string}` |
-| `items` | O2M -> `faq_item` |
-
-**`faq_item`**
-| Field | Type |
-|---|---|
-| `question` | string |
-| `answer` | text (rich text / markdown) |
-| `category` | string (matches tab id) |
-| `sort` | integer |
-
-**`block_cta_banner`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `primary_cta_text` | string |
-| `primary_cta_url` | string |
-| `secondary_cta_text` | string |
-| `secondary_cta_url` | string |
-| `background` | enum: `primary`, `dark`, `gradient` |
-| `pre_sale_text` | string |
-| `pre_sale_link_text` | string |
-| `pre_sale_link_url` | string |
-| `show_google_rating` | boolean |
-
-**`block_partners_carousel`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `logos` | JSON array of file references |
-
-**`block_rich_text`**
-| Field | Type |
-|---|---|
-| `content` | WYSIWYG text |
-| `max_width` | enum: `narrow` (640px), `medium` (768px), `full` (1280px) |
-
-**`block_contact_form`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `contact_info_headline` | string |
-| `contact_info_description` | text |
-| `contact_image` | file |
-| `form_headline` | string |
-| `form_description` | text |
-| `submit_text` | string |
-| `success_message` | string |
-
-**`block_service_cards`**
-| Field | Type |
-|---|---|
-| `eyebrow` | string |
-| `headline` | string |
-| `description` | text |
-| `cards` | JSON array of `{icon: string, title: string, description: string, cta_text: string, cta_url: string, badge?: string}` |
-
-**`block_comparison_table`**
-| Field | Type |
-|---|---|
-| `headline` | string |
-| `description` | text |
-| `columns` | JSON array of `{header: string}` |
-| `rows` | JSON array of `{feature: string, values: string[]}` |
+Every `<lottie-player>` must have `background="transparent"`, `speed="0.85"`, `loop`, `autoplay`, and a wrapping `<div>` with explicit width/height. Apply Fix 17 fallbacks.
 
 ---
 
-## PHASE 3 — Frontend Vue Components
+## 10. REFERENCE DESIGN — WHAT TO MATCH
 
-### Task 3.1: Layout Components (`/frontend/components/layout/`)
+The existing `onenet-site.html` in the outputs folder is the **reference design**. Match:
+- The exact colour palette, spacing scale, and typography hierarchy
+- The card hover lift effect (`transform: translateY(-3px)` + shadow increase)
+- The trust bar scrolling animation
+- The billing toggle behaviour
+- The FAQ accordion
 
-**`PromoBar.vue`**
-- Sticky top bar with primary background color
-- Displays promo text from `site_settings`
-- CTA button on the right
-- Dismissible (stores dismissed state in localStorage)
-- Hidden when `promo_bar_enabled` is false
+**Do NOT match:**
+- The previous design did NOT have: sticky CTA bars, chat FAB, currency switcher, domain result states, exit bar, comparison tables, Nigerian market section, Future of Productivity section, phone numbers in footer, hero trust strips, hero reassurance micro-copy, proximate social proof above pricing, or working Lottie fallbacks.
+These are the 20 fixes. They are NEW additions to what exists.
 
-**`AppHeader.vue`**
-- Sticky below PromoBar
-- White background with subtle bottom border
-- Left: Logo (links to `/`)
-- Center: Main navigation with mega-menu dropdowns
-  - Each top-level item opens a dropdown panel on hover/click
-  - Dropdown items have icon + title + description
-- Right section:
-  - Phone icon + "02013-309-154" (tel: link)
-  - "Help Center" link -> WHMCS knowledgebase
-  - User icon + "Sign-in" dropdown with these links:
-    - Client Area -> https://host.onenetservers.net/login
-    - Business eMail -> https://odinson.onenetservers.com:100/
-    - WordPress Cloud Hosting -> https://kent.onenetservers.com/login
-    - Plesk Hosting Panel -> https://hank.onenetservers.com:8443/
-    - Reseller Hosting Panel -> https://odinson.onenetservers.com:8443/
-  - Each sign-in item has title + subtitle description
-- Mobile: Hamburger icon triggers `MobileNav`
+---
 
-**`MobileNav.vue`**
-- Off-canvas slide-in panel from right
-- Logo at top, close button
-- Accordion-style submenus for each nav group
-- Phone, Help Center, Sign-in links
-- Social media icons at bottom
+## 11. FILE NAMING & PATH CONVENTIONS
 
-**`AppFooter.vue`**
-- Primary (purple) background, white text
-- Desktop: 5 columns
-  - Column 1: Brand description, address, phone, email, social icons (Facebook, Twitter, Instagram, LinkedIn)
-  - Column 2 "Domain & Hosting": Web Hosting, WordPress Hosting, Business Email, Reseller Hosting, Domain Name Search, Domain Name Transfer, Premium SSL Cert
-  - Column 3 "Tools (coming soon)": Website Builder, Online Store, Image Converter, Doc Converter, AI Logo Generator, AI Business Name Tool, SEO Analyser, Payment Gateway, Invoicing App
-  - Column 4 "Company": About Us, Contact Us, HostAdvice Review, Help Center, Blog & Newsletters, Report Abuse, Start2Dev, Careers, Sitemap
-  - Column 5 "Resources": cPanel Tutorial, Plesk Tutorial, Reseller Tutorial, WordPress Tutorial, Domain Tutorial, SSL Certs Tutorial, Network Status, WHOIS Check
-- Mobile: Accordion columns
-- Bottom bar: Copyright text, Privacy/Terms/Agreement/Sitemap links, payment method logos (Flutterwave, Bitcoin, Stripe, PayPal)
-
-### Task 3.2: UI Primitives (`/frontend/components/ui/`)
-
-| Component | Description |
-|---|---|
-| `BaseButton.vue` | Props: `variant` (primary/secondary/outline/ghost), `size` (sm/md/lg), `href` (renders as `<a>` or `<NuxtLink>`), `loading`, `disabled`, `icon-left`, `icon-right`. Primary = rounded-full purple. |
-| `BaseCard.vue` | Wrapper with configurable border, shadow, padding, border-radius. |
-| `BaseInput.vue` | Text input with floating/top label, validation error display, optional icon. |
-| `BaseSelect.vue` | Dropdown select with custom styling. |
-| `BaseTextarea.vue` | Multi-line input with character count option. |
-| `BaseAccordion.vue` | Single collapsible item. Supports purple gradient background variant (FAQ style) or minimal variant. |
-| `BaseAccordionGroup.vue` | Wraps multiple `BaseAccordion` items with optional single-open behavior. |
-| `BaseTabs.vue` | Horizontal tab list. Props: `tabs` array, `modelValue` for active tab. Emits `update:modelValue`. Supports pill style (homepage) and underline style. |
-| `BaseBadge.vue` | Small label. Variants: `new` (green), `hot` (red), `sale` (yellow), `default` (gray). |
-| `BaseModal.vue` | Accessible dialog overlay with focus trap, escape to close. |
-| `BaseTooltip.vue` | Hover/focus tooltip with arrow. |
-| `BaseCarousel.vue` | Horizontal scroll carousel with prev/next buttons, auto-play option, responsive slides. |
-| `IconComponent.vue` | Dynamic SVG icon loader. Loads icons from `assets/icons/` by name. |
-
-### Task 3.3: Shared Components (`/frontend/components/shared/`)
-
-**`GoogleRatingBadge.vue`**
-- Google logo + 5 star icons (filled based on rating) + "Rating: 4.9/5 | 20 Google reviews" text
-- Links to Google review page
-- Data from `site_settings`
-
-**`PriceDisplay.vue`**
-- Props: `amount` (number), `currency` (string, default "NGN"), `period` (string, e.g., "Per month"), `discount_label`, `savings_label`
-- Renders formatted price with currency symbol
-- Optional yellow savings badge
-- Optional discount label
-
-**`DomainSearchWidget.vue`**
-- Large search input + submit button
-- Props: `action_type` ("register" or "transfer"), `placeholder`, `button_text`
-- On submit: calls `/api/whmcs/domain-check` via `useDomainSearch` composable
-- Shows loading spinner during search
-- Displays results: green badge if available, red if taken, with pricing
-- "Add to Cart" button -> redirects to WHMCS cart URL
-- Below input: optional TLD badge row (using `BaseBadge`)
-
-**`TldPriceBadge.vue`**
-- Displays a single TLD card: extension name, strike-through regular price, sale price
-- Optional NEW/HOT/SALE badge
-
-### Task 3.4: Block Components (`/frontend/components/blocks/`)
-
-Each block component receives its data as props (typed from `cms.ts`).
-
-| Component | Notes |
-|---|---|
-| `BlockHero.vue` | Supports 3 variants. Split variant = left text, right image. Centered = full-width centered text. FullBg = text over background image (About page). |
-| `BlockTabbedHero.vue` | Homepage hero with horizontal tab pills (Web Hosting / Domain Names / Business Emails / Website & SEO). Each tab swaps the hero content. |
-| `BlockPricingSection.vue` | Optional tab toggle at top (WordPress / Web Hosting). Renders `PricingCard` sub-components in a responsive 3-column grid. Below: included features grid (6 items, icon+title+description). Footer notes. |
-| `PricingCard.vue` | Sub-component: plan name, emoji, badge, description, price display, CTA button, feature checklist with checkmarks. Purple border, rounded corners. |
-| `BlockFeaturesGrid.vue` | Responsive grid of feature cards. Each card: icon, title, description. Card variant has thin border. |
-| `BlockDomainSearch.vue` | Wrapper around `DomainSearchWidget` with headline, description, background. |
-| `BlockDomainPricingCarousel.vue` | Horizontal auto-scrolling carousel of `TldPriceBadge` components with prev/next buttons. |
-| `BlockTextWithImage.vue` | Two-column layout: text content on one side, image on the other. Supports flipped image position. Optional uptime/support badges. |
-| `BlockPerformanceChart.vue` | Left: tech icons row + horizontal bar chart comparing OpenLiteSpeed vs Nginx vs Apache performance. Right: headline, description, CTA. "5x faster" badge. |
-| `BlockGlobalReach.vue` | Headline + description on left, map image on right. Light background. |
-| `BlockTestimonials.vue` | Left: headline + description + Google rating. Right: horizontal scrolling cards with quote icon, star rating, review text, source logo, read more link. |
-| `BlockFaq.vue` | Optional search bar. Optional category tabs. Accordion items underneath. Purple gradient background on accordion headers. |
-| `BlockCtaBanner.vue` | Full-width or contained banner with headline, description, CTAs. Primary purple background with white text. Optional "Got pre-sale questions?" link. Optional Google rating display. |
-| `BlockPartnersCarousel.vue` | Auto-scrolling logo carousel. |
-| `BlockRichText.vue` | Renders WYSIWYG content with proper typography styles (prose). |
-| `BlockContactForm.vue` | Two-column: left = contact info + image, right = form (First Name, Last Name, Email, Phone, Company, Message, Submit). |
-| `BlockServiceCards.vue` | Grid of service cards with icons, titles, descriptions, CTAs. |
-| `BlockComparisonTable.vue` | Responsive comparison table (used for cPanel vs WordPress hosting). |
-| **`BlockRenderer.vue`** | **Core component.** Receives the M2A `blocks` array from a page. Maps each block's `collection` name to the correct Vue component using a registry map. Renders all blocks in order. |
-
-BlockRenderer collection-to-component mapping:
-```typescript
-const blockRegistry: Record<string, Component> = {
-  'block_hero': BlockHero,
-  'block_tabbed_hero': BlockTabbedHero,
-  'block_pricing_section': BlockPricingSection,
-  'block_features_grid': BlockFeaturesGrid,
-  'block_domain_search': BlockDomainSearch,
-  'block_domain_pricing_carousel': BlockDomainPricingCarousel,
-  'block_text_with_image': BlockTextWithImage,
-  'block_performance_chart': BlockPerformanceChart,
-  'block_global_reach': BlockGlobalReach,
-  'block_testimonials': BlockTestimonials,
-  'block_faq': BlockFaq,
-  'block_cta_banner': BlockCtaBanner,
-  'block_partners_carousel': BlockPartnersCarousel,
-  'block_rich_text': BlockRichText,
-  'block_contact_form': BlockContactForm,
-  'block_service_cards': BlockServiceCards,
-  'block_comparison_table': BlockComparisonTable,
-}
+```
+/index.html                      → base URL /
+/about.html                      → /about
+/contact.html                    → /contact
+/digital-identity.html           → /digital-identity
+/community.html                  → /community
+/hosting/web.html                → /hosting/web
+/hosting/wordpress.html          → /hosting/wordpress
+/hosting/reseller.html           → /hosting/reseller
+/hosting/vps.html                → /hosting/vps
+/domains/index.html              → /domains
+/domains/transfer.html           → /domains/transfer
+/domains/ng.html                 → /domains/ng
+/email/index.html                → /email
+/security/ssl.html               → /security/ssl
+/security/oneguard.html          → /security/oneguard
+/legal/terms.html                → /legal/terms
+/legal/privacy.html              → /legal/privacy
+/legal/agreement.html            → /legal/agreement
+/shared/tokens.css               → design tokens
+/shared/components.css           → component styles
+/shared/layout.css               → grid + containers
+/shared/nav.css                  → navigation
+/shared/footer.css               → footer
+/shared/animations.css           → reveals + transitions
+/shared/main.js                  → all JavaScript
+/assets/logo.svg                 → brand logo (already exists)
+/assets/icons/                   → SVG icon files
+/assets/lottie/                  → .lottie fallback files (optional)
 ```
 
----
+All internal `<link>` and `<script>` paths use **root-relative paths** (`/shared/tokens.css`) NOT relative paths (`../../shared/tokens.css`). This ensures consistency regardless of nesting depth.
 
-## PHASE 4 — Pages & Routing
-
-### Task 4.1: Dynamic Page Route
-Create `frontend/pages/[...slug].vue`:
-- Fetch page from Directus by matching slug
-- If not found, throw `createError({ statusCode: 404 })`
-- Set SEO meta from page's `meta_title`, `meta_description`, `og_image`
-- Pass `page.blocks` array to `<BlockRenderer :blocks="page.blocks" />`
-
-### Task 4.2: Homepage
-Create `frontend/pages/index.vue`:
-- Fetch homepage from Directus (slug = `home` or id-based)
-- Sections in order:
-  1. `BlockTabbedHero` — 4 tabs: Web Hosting, Domain Names, Business Emails, Website & SEO
-  2. Trust bar: "Hosting solutions trusted by over 500 businesses" + Google Rating
-  3. `BlockPricingSection` — with WordPress/Web Hosting toggle, 3 plans each, included features grid
-  4. `BlockTextWithImage` — "All-In-One Website Hosting Platform" with dashboard screenshot
-  5. `BlockPerformanceChart` — "Built for lightning-fast WordPress performance"
-  6. `BlockTextWithImage` — "Reliable hosting built for all webmasters" with feature cards (99.9% Uptime, All-In-One, Go Live in Minutes, 24x7 Support)
-  7. `BlockTextWithImage` — "True cloud for webmaster"
-  8. `BlockGlobalReach` — "We are proud to serve businesses across Africa, N.America, Europe & Asia"
-  9. `BlockTestimonials` — "What customers are saying about us"
-  10. `BlockFaq` — with category tabs (Popular, cPanel, WordPress)
-  11. `BlockCtaBanner` — "Everything You Need to Get Your Website Started"
-  12. Mobile section: `BlockDomainSearch` + `BlockDomainPricingCarousel` + `BlockPricingSection` (mobile-specific layouts)
-  13. `BlockPartnersCarousel` — "Trusted Partners"
-
-### Task 4.3: Product/Service Pages
-
-Each of these pages follows a similar pattern: Hero -> Pricing -> Features -> Performance/Benefits -> FAQ -> CTA. Build them using the CMS block system.
-
-| Page | Slug | Key Blocks |
-|---|---|---|
-| Web Hosting | `/web-hosting` | Hero (split), Pricing (Web Lite/Premium/Ultimate), Features Grid, Text+Image, FAQ, CTA |
-| WordPress Hosting | `/wordpress-hosting` | Hero (split, AI builder screenshot), Pricing (WP Lite/Premium/Ultimate), Features Grid, FAQ, CTA |
-| Reseller Hosting | `/reseller-hosting` | Hero (split), Pricing (RS Starter/Grow/Enterprise), Features Grid, FAQ, CTA |
-| Domain Registration | `/register-domain-name` | Domain Search (register), Domain Pricing Carousel, Features, FAQ, CTA |
-| Domain Transfer | `/domain-transfer` | Domain Search (transfer), Transfer Steps, FAQ, CTA |
-| Business Email | `/business-email` | Hero, Pricing (3 email plans), Features, FAQ, CTA |
-| SSL Certificates | `/ssl-certificates` | Hero, SSL Plan Comparison (Sectigo PositiveSSL, Multi-Domain, Business EV), Features, FAQ |
-| OneGuard Security | `/oneweb-guard` | Hero, Security Plan Pricing (Basic/Premium/Pro Premium), Features, FAQ |
-| Our Services | `/our-services` | Hero centered, Service Cards Grid |
-| Website Design | `/our-services/website-design` | Hero, Portfolio/Process Section, CTA |
-| About | `/about` | Full-width hero with bg image, Company Story, Stats, Team/Values |
-| Contact Us | `/contact-us` | Hero (purple bg), Two-column Contact Form |
-| Legal Pages | `/privacy`, `/terms`, `/agreement`, `/imprint` | Rich Text block only |
-| 404 Error | (error page) | Custom illustration + "Page Not Found" + search/home CTA |
+Each page's `<head>` `<link rel="stylesheet">` block order:
+1. Google Fonts
+2. `/shared/tokens.css`
+3. `/shared/layout.css`
+4. `/shared/components.css`
+5. `/shared/nav.css`
+6. `/shared/footer.css`
+7. `/shared/animations.css`
+8. (optional) page-specific inline `<style>` block for anything unique
 
 ---
 
-## PHASE 5 — WHMCS Integration
+## 12. BUILD ORDER
 
-### Task 5.1: Server-Side API Proxy
-Create Nuxt server routes in `/frontend/server/api/whmcs/`:
+Execute in this exact order to avoid dependency issues:
 
-- `POST /api/whmcs/domain-check` — Check domain availability
-  - Input: `{ domain: string }`
-  - Calls WHMCS `DomainWhois` action
-  - Returns: `{ available: boolean, domain: string, tld: string }`
-
-- `GET /api/whmcs/tld-pricing` — Get all TLD pricing
-  - Calls WHMCS `GetTLDPricing`
-  - Returns cached TLD price list (cache 1 hour)
-
-- `GET /api/whmcs/products` — Get hosting/service products
-  - Calls WHMCS `GetProducts`
-  - Returns product groups and pricing
-
-- `POST /api/whmcs/cart/add` — Add to cart
-  - Redirects user to WHMCS cart URL with product/domain parameters
-
-- `POST /api/whmcs/register` — Register new client
-  - Calls WHMCS `AddClient`
-  - Returns client ID and redirect token
-
-- `GET /api/whmcs/sso` — Generate SSO login URL
-  - Calls WHMCS `CreateSsoToken`
-  - Returns auto-login URL for `host.onenetservers.net`
-
-### Task 5.2: Cart Flow Integration
-- All "Choose this Plan" buttons should generate WHMCS cart URLs:
-  - Format: `https://host.onenetservers.net/cart.php?a=add&pid={PRODUCT_ID}&billingcycle=annually&promocode=NGLaunch`
-- Domain search results should link to:
-  - `https://host.onenetservers.net/cart.php?a=add&domain=register&query={DOMAIN}`
-- "Sign-in" dropdown should offer:
-  - Client Area link -> `https://host.onenetservers.net/clientarea.php`
-  - SSO auto-login (if token available)
-
-### Task 5.3: Pricing Sync Strategy
-- Pricing shown on the Vue site comes from Directus CMS (manually managed, matches WHMCS)
-- Optionally, create a Directus hook/extension or cron job that periodically syncs WHMCS product prices into Directus collections
-- The CMS is the source of truth for display; WHMCS is the source of truth for billing
+1. `shared/tokens.css` — complete the existing file
+2. `shared/layout.css` — build fresh
+3. `shared/components.css` — build fresh
+4. `shared/nav.css` — build fresh
+5. `shared/footer.css` — build fresh
+6. `shared/animations.css` — build fresh
+7. `shared/main.js` — build fresh (all 13 functions listed in Section 4)
+8. `index.html` — Homepage (reference page, build first, used as visual benchmark)
+9. `hosting/web.html` — Web Hosting
+10. `hosting/wordpress.html` — WordPress Hosting
+11. `hosting/reseller.html` — Reseller Hosting
+12. `hosting/vps.html` — Cloud VPS
+13. `domains/index.html` — Domain Registration
+14. `domains/transfer.html` — Domain Transfer
+15. `domains/ng.html` — .NG Domains
+16. `email/index.html` — Business Email
+17. `security/ssl.html` — SSL Certificates
+18. `security/oneguard.html` — OneGuard Security
+19. `about.html` — About Us
+20. `contact.html` — Contact Us
+21. `digital-identity.html` — Digital Identity Initiative
+22. `community.html` — Future of Productivity
+23. `legal/terms.html`, `legal/privacy.html`, `legal/agreement.html`
 
 ---
 
-## PHASE 6 — Composables & Utilities
+## 13. QUALITY GATES
 
-### Task 6.1: Vue Composables
-Create in `/frontend/composables/`:
+Before considering any page "done", verify:
 
-- `useDirectus.ts` — Directus SDK wrapper, fetch pages, blocks, settings, navigation
-- `useWhmcs.ts` — WHMCS API calls (via the `/api/whmcs/` proxy)
-- `useSiteSettings.ts` — Global site settings from Directus (cached)
-- `useNavigation.ts` — Fetch and structure navigation tree
-- `useDomainSearch.ts` — Domain search state management (query, loading, results)
-- `usePricing.ts` — Currency formatting, price display helpers
-- `useSeo.ts` — Meta tag management per page (from CMS data)
-- `useForm.ts` — Generic form state, validation, submission
-
-### Task 6.2: TypeScript Types
-Create in `/frontend/types/`:
-
-- `cms.ts` — All Directus collection interfaces (Page, Block*, PricingPlan, Testimonial, Navigation, SiteSettings, etc.)
-- `whmcs.ts` — WHMCS API request/response types (DomainCheckResult, Product, TldPricing, Client, Order, SsoToken)
-- `ui.ts` — Component prop types (ButtonVariant, CardVariant, TabItem, etc.)
-
----
-
-## PHASE 7 — SEO, Performance & Accessibility
-
-### Task 7.1: SEO
-- Implement `useSeoMeta()` on every page from CMS `meta_title` and `meta_description`
-- Generate `sitemap.xml` dynamically from Directus pages
-- Add `robots.txt`
-- Implement JSON-LD structured data (Organization, Product, FAQ, BreadcrumbList)
-- Open Graph and Twitter Card meta tags from CMS `og_image`
-
-### Task 7.2: Performance
-- Nuxt Image module (`@nuxt/image`) for responsive images, lazy loading, WebP conversion
-- Enable ISR (Incremental Static Regeneration) for product/pricing pages
-- Cache Directus API responses at the Nuxt server level (5-minute TTL)
-- Preload critical fonts
-- Tailwind purge for minimal CSS
-
-### Task 7.3: Accessibility
-- All interactive elements keyboard-navigable
-- ARIA labels on icons, navigation, modals
-- Skip-to-content link
-- Focus-visible styles
-- Color contrast compliance (WCAG AA)
-- Screen reader-friendly pricing tables
+- [ ] All 20 fixes implemented on the page (check the relevant subset per page)
+- [ ] All prices are correct and match Section 5 tables
+- [ ] Phone numbers appear in footer: +234 201 330 9154 and +44 7333 880 7775
+- [ ] Currency switcher works (NGN/GBP/USD)
+- [ ] Billing toggle works (Monthly/Annual) where applicable
+- [ ] FAQ accordion opens/closes correctly
+- [ ] Sticky CTA bar appears after 600px scroll on product pages
+- [ ] Chat FAB is present and positioned correctly
+- [ ] Exit bar fires at 85% scroll, dismissible, once per session
+- [ ] Hero CTA has reassurance micro-copy directly below it
+- [ ] Pricing section has proximate social proof above it
+- [ ] Mobile responsive: 375px, 768px, 1024px, 1280px — no horizontal overflow
+- [ ] No placeholder text left in the file (no "Lorem ipsum", no "[PLACEHOLDER]")
+- [ ] JSON-LD schema present and valid
+- [ ] Canonical URL and OG meta tags present
+- [ ] Logo renders correctly (img src="/assets/logo.svg")
+- [ ] Lottie animations have fallback divs
+- [ ] Comparison table has mobile scroll hint
+- [ ] Domain search result state implemented (domains page + homepage)
 
 ---
 
-## PHASE 8 — Deployment & DevOps
+## 14. DO NOT
 
-### Task 8.1: VPS Deployment Setup
-- Write production `docker-compose.prod.yml`:
-  - Directus container (Node.js)
-  - PostgreSQL container
-  - Nuxt 3 container (Node.js, `nuxt build` output)
-  - Nginx container (reverse proxy, SSL termination)
-- Create Nginx config:
-  - `onenetservers.net` -> Nuxt app
-  - `cms.onenetservers.net` -> Directus admin
-  - `host.onenetservers.net` -> existing WHMCS (unchanged)
-- SSL via Let's Encrypt / Certbot
-- PM2 ecosystem file for Nuxt process management
-
-### Task 8.2: CI/CD Pipeline
-- GitHub Actions workflow:
-  - On push to `main`: lint, type-check, build, deploy to VPS via SSH
-  - On push to `staging`: deploy to staging environment
-- Environment variable management (`.env.production`)
-
-### Task 8.3: Directus Content Migration
-- Write seed scripts to populate Directus with initial content from the current WordPress site:
-  - All page content, pricing plans, domain TLD prices, testimonials, FAQs, navigation structure
-  - Export images/assets to Directus file storage
-- Document the CMS editor workflow for creating new pages with blocks
+- Do NOT use any JavaScript framework (React, Vue, Alpine, etc.)
+- Do NOT use any CSS framework (Tailwind, Bootstrap, etc.)
+- Do NOT install any npm packages
+- Do NOT use emoji in UI text (SVG icons only)
+- Do NOT use `font-weight: 700` or `font-weight: 800` — maximum is `600`
+- Do NOT hard-code colours — always use CSS custom properties from tokens.css
+- Do NOT use relative import paths — always use root-relative (`/shared/...`)
+- Do NOT name competitors by brand name in comparison tables
+- Do NOT fabricate testimonials with invented names — use the 3 provided in Section 5
+- Do NOT leave any stub pages — every page must be complete
+- Do NOT use `px` for font sizes in media queries — use `rem` or `em`
+- Do NOT break the existing `onenet-site.html` design language — extend it, don't replace it
 
 ---
 
-## PHASE 9 — Testing & QA
+## 15. FINAL DELIVERY
 
-### Task 9.1: Unit Tests
-- Vitest for component unit tests
-- Test all composables (especially `useDomainSearch`, `usePricing`)
-- Test WHMCS API proxy routes with mocked responses
-
-### Task 9.2: E2E Tests
-- Playwright for critical user flows:
-  - Homepage loads correctly with all blocks
-  - Domain search returns results
-  - "Choose this Plan" navigates to correct WHMCS cart URL
-  - Navigation dropdowns work
-  - Mobile responsive menu works
-  - Contact form submits successfully
-
-### Task 9.3: Cross-Browser & Responsive QA
-- Test on Chrome, Firefox, Safari, Edge
-- Test responsive breakpoints: 375px, 768px, 1024px, 1280px, 1536px
-- Verify all blocks render correctly at all breakpoints
+When all pages are built, create a `README.md` in the root with:
+1. Complete file tree
+2. How to run locally (just open index.html in a browser — no server needed)
+3. How to deploy (any static host: Netlify, Vercel, Cloudflare Pages, or direct to server)
+4. How to update prices (search for `data-m`, `data-a`, `data-ngn`, `data-gbp`, `data-usd` attributes)
+5. How to add a new page (copy the closest existing page, update head meta, update nav active state)
+6. Browser support targets (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+, Chrome Android 90+, Safari iOS 14+)
 
 ---
 
-## Execution Order for Claude Code
-
-1. **Phase 1** — Set up repo, Nuxt, Tailwind, Directus Docker, WHMCS service
-2. **Phase 2** — Create all Directus schemas via migrations/scripts
-3. **Phase 3.1-3.2** — Build layout + UI primitive components
-4. **Phase 3.3** — Build shared components (GoogleRating, PriceDisplay, DomainSearch)
-5. **Phase 3.4** — Build all block components + BlockRenderer
-6. **Phase 4** — Wire up page routing and dynamic rendering
-7. **Phase 5** — WHMCS integration (domain search, cart URLs, SSO)
-8. **Phase 6** — Composables and type definitions
-9. **Phase 7** — SEO, performance, accessibility
-10. **Phase 8** — Docker deployment, Nginx, CI/CD
-11. **Phase 9** — Tests and QA
-12. **Phase 2 (seed)** — Migrate current site content into Directus
-
----
-
-## Key WHMCS Endpoints Reference
-
-| WHMCS Action | Purpose | Used By |
-|---|---|---|
-| `DomainWhois` | Check domain availability | DomainSearchWidget |
-| `GetTLDPricing` | Retrieve TLD pricing | Domain pricing pages |
-| `GetProducts` | Get hosting product details/pricing | Pricing sync |
-| `AddOrder` | Create new order | Cart integration |
-| `AddClient` | Register new customer | Registration flow |
-| `CreateSsoToken` | Generate auto-login token | Sign-in dropdown |
-| `GetClientsDetails` | Retrieve client info | Account management |
-| `GetInvoices` | List client invoices | Client area integration |
-
-## External Service URLs (Do Not Change)
-
-| Service | URL |
-|---|---|
-| WHMCS Client Area | https://host.onenetservers.net/login |
-| WHMCS Cart | https://host.onenetservers.net/cart.php |
-| WHMCS Knowledgebase | https://host.onenetservers.net/knowledgebase |
-| WHMCS Support Ticket | https://host.onenetservers.net/submitticket.php |
-| Business eMail Webmail | https://odinson.onenetservers.com:100/ |
-| WordPress Cloud Panel | https://kent.onenetservers.com/login |
-| Plesk Hosting Panel | https://hank.onenetservers.com:8443/ |
-| Reseller Hosting Panel | https://odinson.onenetservers.com:8443/ |
-| Network Status | https://host.onenetservers.net/serverstatus.php |
-| Google Reviews | https://g.page/r/CdPrQsvgFUmrEB0/review |
+*End of CLAUDE.md — OneNet Servers Website Build Specification v1.0*
+*Prepared for handover to Claude Code — March 2026*
+*All content, pricing, and brand information verified against live store and project knowledge base.*
