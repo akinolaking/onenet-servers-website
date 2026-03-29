@@ -25,18 +25,78 @@
   <link rel="stylesheet" href="/shared/footer.css">
   <link rel="stylesheet" href="/shared/animations.css">
   <!-- JSON-LD Schema — Claude Code fills this -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "OneNet Servers",
-    "url": "https://onenetservers.net/",
-    "logo": "https://onenetservers.net/assets/logo.svg",
-    "email": "support@onenetservers.net",
-    "telephone": "+44 7333 880 7775"
-  }
-  </script>
-<meta name="theme-color" content="#4343F0"></head>
+<meta name="theme-color" content="#4343F0"><script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://onenetservers.net/#organization",
+      "name": "OneNet Servers",
+      "alternateName": "ConqolX Technologies Limited",
+      "url": "https://onenetservers.net/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://onenetservers.net/assets/logo.svg"
+      },
+      "description": "Web hosting, domain registration, business email and cloud VPS. NiRA accredited. UK RC: 14565201. NG RC: 1775966.",
+      "foundingDate": "2022",
+      "email": "support@onenetservers.net",
+      "sameAs": [
+        "https://twitter.com/onenetservers",
+        "https://linkedin.com/company/onenetservers",
+        "https://instagram.com/onenetservers"
+      ],
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+2342013309154",
+          "contactType": "customer service",
+          "areaServed": "NG",
+          "availableLanguage": "English"
+        },
+        {
+          "@type": "ContactPoint",
+          "telephone": "+447333880775",
+          "contactType": "customer service",
+          "areaServed": "GB",
+          "availableLanguage": "English"
+        }
+      ],
+      "address": [
+        {
+          "@type": "PostalAddress",
+          "addressCountry": "GB",
+          "addressLocality": "London"
+        },
+        {
+          "@type": "PostalAddress",
+          "addressCountry": "NG",
+          "addressLocality": "Lagos"
+        }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://onenetservers.net/#website",
+      "url": "https://onenetservers.net/",
+      "name": "OneNet Servers",
+      "publisher": {
+        "@id": "https://onenetservers.net/#organization"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://onenetservers.net/domains?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
+</head>
 <body><a href="#main-content" class="skip-link">Skip to main content</a>
     <header id="main-nav">
     <div class="nav-shell">
