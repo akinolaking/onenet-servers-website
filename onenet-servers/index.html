@@ -231,23 +231,37 @@
           <div class="domain-search-wrap">
             <form id="domain-search-form">
               <div class="domain-search">
-                <div class="domain-search-icon">⌕</div>
-                <input id="domain-search-input" class="domain-search-input" type="text" placeholder="Find your domain, e.g. yourbrand.ng">
+                <div class="domain-search-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </div>
+                <input id="domain-search-input" class="domain-search-input" type="text" placeholder="Search for your domain — e.g. yourbrand.ng" autocomplete="off" spellcheck="false">
                 <button class="domain-search-btn" type="submit">Search</button>
               </div>
             </form>
             <div class="domain-tlds">
-              <button class="tld-chip ng" data-tld=".ng" type="button">.ng</button>
-              <button class="tld-chip" data-tld=".com.ng" type="button">.com.ng</button>
-              <button class="tld-chip" data-tld=".com" type="button">.com</button>
-              <button class="tld-chip" data-tld=".co.uk" type="button">.co.uk</button>
+              <button class="tld-chip ng" data-tld=".ng" type="button">.ng <span class="tld-price">from $23.40/yr</span></button>
+              <button class="tld-chip" data-tld=".com.ng" type="button">.com.ng <span class="tld-price">from $11.25/yr</span></button>
+              <button class="tld-chip" data-tld=".com" type="button">.com <span class="tld-price">from $15.00/yr</span></button>
+              <button class="tld-chip" data-tld=".co.uk" type="button">.co.uk <span class="tld-price">from $8.12/yr</span></button>
             </div>
             <div id="domain-result-available" class="domain-result available" hidden>
-              <div id="domain-result-available-text" class="domain-result-text"></div>
+              <div class="domain-result-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="domain-result-body">
+                <div id="domain-result-available-text" class="domain-result-text"></div>
+                <div class="domain-result-sub">Ready to register — instant activation, WHOIS privacy included</div>
+              </div>
               <a id="domain-register-btn" class="btn btn-sm btn-primary" href="/domains">Register now</a>
             </div>
             <div id="domain-result-taken" class="domain-result taken" hidden>
-              <div id="domain-result-taken-text" class="domain-result-text"></div>
+              <div class="domain-result-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="domain-result-body">
+                <div id="domain-result-taken-text" class="domain-result-text"></div>
+                <div class="domain-result-sub">Try a variation or choose another extension below</div>
+              </div>
             </div>
           </div>
         </div>
