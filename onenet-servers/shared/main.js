@@ -126,16 +126,7 @@ function initMobileMenu() {
     if (e.key === 'Escape') closeMenu();
   });
 
-  /* Mobile nav accordion */
-  $$('.mobile-nav-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const group = btn.closest('.mobile-nav-group');
-      const isOpen = group.classList.contains('mobile-nav-group--open');
-      $$('.mobile-nav-group--open').forEach(g => g.classList.remove('mobile-nav-group--open'));
-      if (!isOpen) group.classList.add('mobile-nav-group--open');
-      btn.setAttribute('aria-expanded', !isOpen);
-    });
-  });
+  /* Mobile nav accordion — handled natively by <details>/<summary> elements */
 }
 
 /* ═══════════════════════════════════════════════
@@ -348,7 +339,7 @@ function updateAllPrices() {
     const symEl = el.querySelector('.plan-sym');
     const perEl = el.querySelector('.plan-per') || el.querySelector('.plan-billing-label');
 
-    if (numEl) numEl.textContent = currentCurrency === 'NGN' ? Math.round(price).toLocaleString('en-NG') : price.toFixed(2).split('.')[0];
+    if (numEl) numEl.textContent = currentCurrency === 'NGN' ? Math.round(price).toLocaleString('en-NG') : price.toFixed(2);
     if (symEl) symEl.textContent = sym;
     if (perEl) perEl.textContent = isAnnual ? '/mo (billed annually)' : '/mo';
 
@@ -359,12 +350,42 @@ function updateAllPrices() {
     if (gbpLine) gbpLine.style.display = currentCurrency !== 'GBP' ? 'block' : 'none';
   });
 
+  /* Update renewal price spans */
+  $$('[data-renew-usd]').forEach(el => {
+    if (currentCurrency === 'USD' && el.dataset.renewUsd) el.textContent = el.dataset.renewUsd;
+    else if (currentCurrency === 'GBP' && el.dataset.renewGbp) el.textContent = el.dataset.renewGbp;
+    else if (currentCurrency === 'NGN' && el.dataset.renewNgn) el.textContent = el.dataset.renewNgn;
+  });
+
+  /* Update sticky CTA price when plan key is provided */
+  const stickyCta = $('#sticky-cta[data-sticky-from]');
+  if (stickyCta) {
+    const plan = stickyCta.dataset.stickyFrom;
+    if (PRICES[plan]) {
+      const ctaPrice = PRICES[plan][currKey];
+      const strong = stickyCta.querySelector('.sticky-cta-text strong');
+      if (strong && ctaPrice !== undefined) {
+        const priceStr = currentCurrency === 'NGN'
+          ? `₦${Math.round(ctaPrice).toLocaleString('en-NG')}/mo`
+          : `${sym}${ctaPrice.toFixed(2)}/mo`;
+        strong.textContent = strong.textContent.replace(/from [$£₦][\d,.]+\/mo/, `from ${priceStr}`);
+      }
+    }
+  }
+
+  /* Update TLD chip prices */
+  $$('.tld-price[data-usd]').forEach(el => {
+    if (currentCurrency === 'USD' && el.dataset.usd) el.textContent = el.dataset.usd;
+    else if (currentCurrency === 'NGN' && el.dataset.ngn) el.textContent = el.dataset.ngn;
+    else if (currentCurrency === 'GBP' && el.dataset.gbp) el.textContent = el.dataset.gbp;
+  });
+
   /* Simple data-m / data-a / data-usd / data-gbp / data-ngn fallback */
   $$('[data-m]').forEach(el => {
     el.textContent = isAnnual ? el.dataset.a : el.dataset.m;
   });
   $$('[data-usd]').forEach(el => {
-    if (currentCurrency === 'USD') el.style.display = '';
+    el.style.display = currentCurrency === 'USD' ? '' : 'none';
   });
   $$('[data-ngn]').forEach(el => {
     el.style.display = currentCurrency === 'NGN' ? '' : 'none';

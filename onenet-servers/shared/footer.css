@@ -29,7 +29,10 @@
 }
 
 .footer-logo img {
-  width: 32px;
+  height: 28px;
+  width: 28px;
+  object-fit: cover;
+  object-position: left center;
   filter: brightness(6);
 }
 

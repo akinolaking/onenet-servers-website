@@ -61,8 +61,10 @@
 }
 
 .nav-brand img {
+  height: 34px;
   width: 34px;
-  height: auto;
+  object-fit: cover;
+  object-position: left center;
 }
 
 .nav-brand span {
