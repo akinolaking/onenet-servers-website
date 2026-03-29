@@ -288,7 +288,16 @@ function initBillingToggle() {
       annualLabels.forEach(l  => l.classList.toggle('active', isAnnual));
 
       updateAllPrices();
+      syncPlanCardUrls();
     });
+  });
+}
+
+/* Sync plan card CTA href with current billing cycle */
+function syncPlanCardUrls() {
+  $$('.plan-card a[data-monthly-url], .plan-card a[data-annual-url]').forEach(link => {
+    if (isAnnual && link.dataset.annualUrl) link.href = link.dataset.annualUrl;
+    if (!isAnnual && link.dataset.monthlyUrl) link.href = link.dataset.monthlyUrl;
   });
 }
 
@@ -790,10 +799,20 @@ function updateCartBadge(count) {
    AJAX ADD-TO-CART
 ═══════════════════════════════════════════════ */
 function initAjaxCart() {
-  $$('.btn-add-cart').forEach(btn => {
+  /* Match explicit .btn-add-cart OR any plan-card CTA link to /cart.php?a=add */
+  const cartLinks = [
+    ...$$('.btn-add-cart'),
+    ...$$('.plan-card a[href*="/cart.php?a=add"], .plan-card a[data-monthly-url]')
+      .filter(el => !el.classList.contains('btn-add-cart'))
+  ];
+
+  cartLinks.forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      const href = btn.getAttribute('href') || btn.dataset.cartUrl;
+      /* Respect billing toggle: prefer data-monthly/annual-url if billing state is known */
+      let href = btn.getAttribute('href') || btn.dataset.cartUrl;
+      if (isAnnual && btn.dataset.annualUrl) href = btn.dataset.annualUrl;
+      if (!isAnnual && btn.dataset.monthlyUrl) href = btn.dataset.monthlyUrl;
       if (!href || !href.includes('/cart.php')) {
         window.location.href = href;
         return;
