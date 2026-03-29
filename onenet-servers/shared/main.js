@@ -144,7 +144,7 @@ function initMobileMenu() {
 function initNavDropdowns() {
   const items = $$('.nav-has-dropdown');
   items.forEach(item => {
-    const btn      = item.querySelector('.nav-link');
+    const btn      = item.querySelector('.nav-link-btn') || item.querySelector('.nav-link');
     const dropdown = item.querySelector('.nav-dropdown');
     if (!btn || !dropdown) return;
 
@@ -177,19 +177,16 @@ function initNavDropdowns() {
 
   /* Close all on outside click */
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.nav-has-dropdown')) {
-      $$('.nav-dropdown--open').forEach(d => d.classList.remove('nav-dropdown--open'));
+    if (!e.target.closest('.nav-has-dropdown') && !e.target.closest('.currency-dropdown')) {
+      closeAllDropdowns();
     }
   });
 }
 
 /* ═══════════════════════════════════════════════
-   3. CURRENCY SWITCHER
+   3. CURRENCY SWITCHER (dropdown)
 ═══════════════════════════════════════════════ */
 function initCurrencySwitcher() {
-  const btns = $$('.currency-btn');
-  if (!btns.length) return;
-
   /* Auto-detect from browser language */
   const lang = navigator.language || 'en-US';
   if (lang.includes('NG') || lang === 'ha' || lang === 'yo' || lang === 'ig') {
@@ -199,24 +196,75 @@ function initCurrencySwitcher() {
   } else {
     currentCurrency = 'USD';
   }
-
-  /* Check localStorage override */
   const saved = localStorage.getItem('onenet_currency');
   if (saved && ['USD','GBP','NGN'].includes(saved)) currentCurrency = saved;
+
+  const FLAGS = { USD: '🇺🇸', GBP: '🇬🇧', NGN: '🇳🇬' };
 
   function switchCurrency(currency) {
     currentCurrency = currency;
     localStorage.setItem('onenet_currency', currency);
+
+    /* Update dropdown trigger label */
+    const flagEl  = $('#currency-flag-icon');
+    const labelEl = $('#currency-label');
+    if (flagEl)  flagEl.textContent  = FLAGS[currency];
+    if (labelEl) labelEl.textContent = currency;
+
+    /* Update desktop dropdown options */
+    $$('.currency-option').forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.currency === currency);
+    });
+
+    /* Update mobile currency buttons */
+    $$('.mobile-currency-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.currency === currency);
+    });
+
+    /* Legacy: update old currency-btn if still on page */
     $$('.currency-btn').forEach(b => b.classList.toggle('active', b.dataset.currency === currency));
+
     updateAllPrices();
   }
 
-  btns.forEach(btn => {
+  /* Desktop currency dropdown */
+  const trigger = $('#currency-trigger');
+  const menu    = $('#currency-menu');
+
+  if (trigger && menu) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = menu.classList.contains('currency-menu--open');
+      closeAllDropdowns();
+      if (!isOpen) {
+        menu.classList.add('currency-menu--open');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+
+  $$('.currency-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      switchCurrency(opt.dataset.currency);
+      if (menu) menu.classList.remove('currency-menu--open');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  /* Mobile currency buttons */
+  $$('.mobile-currency-btn').forEach(btn => {
     btn.addEventListener('click', () => switchCurrency(btn.dataset.currency));
   });
 
-  /* Set initial active state */
+  /* Set initial state */
   switchCurrency(currentCurrency);
+}
+
+function closeAllDropdowns() {
+  $$('.nav-dropdown--open').forEach(d => d.classList.remove('nav-dropdown--open'));
+  $$('.currency-menu--open').forEach(m => m.classList.remove('currency-menu--open'));
+  $$('.nav-link-btn[aria-expanded="true"], .currency-trigger[aria-expanded="true"]')
+    .forEach(b => b.setAttribute('aria-expanded', 'false'));
 }
 
 /* ═══════════════════════════════════════════════
@@ -400,7 +448,7 @@ function initDomainSearch() {
     if (available) {
       available.hidden = false;
       if (availText) availText.textContent = `✓ ${domain} is available — from ${price}/yr`;
-      if (regBtn) regBtn.href = `https://host.onenetservers.net/cart.php?a=add&domain=${encodeURIComponent(domain)}`;
+      if (regBtn) regBtn.href = `/cart.php?a=add&domain=${encodeURIComponent(domain)}&domainaction=register`;
     }
     if (taken) taken.hidden = true;
   }
@@ -413,22 +461,43 @@ function initDomainSearch() {
     if (available) available.hidden = true;
   }
 
+  async function checkDomain(domain) {
+    /* Show loading state */
+    if (available) available.hidden = true;
+    if (taken)     taken.hidden     = true;
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) { btn.textContent = 'Checking…'; btn.disabled = true; }
+
+    try {
+      const res = await fetch(`/api/domain-check.php?domain=${encodeURIComponent(domain)}`, {
+        credentials: 'same-origin', cache: 'no-store'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.available) {
+          showAvailable(domain, data.price || '$15.00');
+        } else {
+          showTaken(domain);
+        }
+        if (btn) { btn.textContent = 'Search'; btn.disabled = false; }
+        return;
+      }
+    } catch (_) { /* fall through to simulation */ }
+
+    /* Fallback simulation */
+    simulateSearch(domain);
+
+    if (btn) { btn.textContent = 'Search'; btn.disabled = false; }
+  }
+
   function simulateSearch(query) {
-    /* Simulation logic:
-       - If query ends with .ng or .com.ng → 70% chance available (for demo)
-       - Others: alternate available/taken based on length
-       In production: replace with WHMCS checkdomain API call */
     const isNgDomain = query.endsWith('.ng') || query.endsWith('.com.ng');
     const length = query.split('.')[0].length;
-
-    /* Deterministic "simulation" based on string length parity */
     const simulatedAvailable = (length % 2 === 0) || isNgDomain;
-
     if (simulatedAvailable) {
       const tld = query.includes('.') ? query.substring(query.indexOf('.')) : '.com';
       const prices = { '.ng':'$23.40', '.com.ng':'$11.25', '.com':'$15.00', '.co.uk':'$8.12', '.ai':'$95.24', '.dev':'$19.04', '.xyz':'$3.42' };
-      const price = prices[tld] || '$15.00';
-      showAvailable(query, price);
+      showAvailable(query, prices[tld] || '$15.00');
     } else {
       showTaken(query);
     }
@@ -441,7 +510,7 @@ function initDomainSearch() {
 
     /* Add TLD if none present */
     const domain = query.includes('.') ? query : query + '.com';
-    simulateSearch(domain);
+    checkDomain(domain);
     input.value = domain;
   });
 }
@@ -632,7 +701,7 @@ function initHeroChrome() {
 ═══════════════════════════════════════════════ */
 function initActiveNav() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
-  $$('.nav-link, .nav-dropdown a, .mobile-nav-link, .mobile-nav-sub a').forEach(link => {
+  $$('.nav-link, .nav-link-btn, .nav-dropdown a, .mobile-nav-link, .mobile-nav-sub a').forEach(link => {
     const href = link.getAttribute('href');
     if (!href) return;
     const linkPath = href.replace(/\/$/, '') || '/';
@@ -643,6 +712,130 @@ function initActiveNav() {
 }
 
 /* ═══════════════════════════════════════════════
+   AUTH MODAL
+═══════════════════════════════════════════════ */
+function initAuthModal() {
+  const modal   = $('#auth-modal');
+  const iframe  = $('#auth-iframe');
+  const tabs    = $$('.auth-tab');
+  if (!modal) return;
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => { t.classList.remove('auth-tab--active'); t.setAttribute('aria-selected','false'); });
+      tab.classList.add('auth-tab--active');
+      tab.setAttribute('aria-selected','true');
+      if (iframe) {
+        const src = tab.dataset.tab === 'signup' ? '/register.php' : '/login.php';
+        if (iframe.src !== location.origin + src) iframe.src = src;
+      }
+    });
+  });
+
+  /* Close on Escape */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.hidden) closeAuthModal();
+  });
+}
+
+function openAuthModal() {
+  const modal  = $('#auth-modal');
+  const iframe = $('#auth-iframe');
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  /* Load iframe src on first open */
+  if (iframe && !iframe.src) iframe.src = '/login.php';
+  /* Ensure first tab is active */
+  const firstTab = $('.auth-tab');
+  if (firstTab && !firstTab.classList.contains('auth-tab--active')) firstTab.click();
+  /* Trap focus on close button */
+  const closeBtn = modal.querySelector('.auth-modal-close');
+  if (closeBtn) setTimeout(() => closeBtn.focus(), 60);
+}
+
+function closeAuthModal() {
+  const modal = $('#auth-modal');
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.style.overflow = '';
+}
+
+/* ═══════════════════════════════════════════════
+   CART COUNT
+═══════════════════════════════════════════════ */
+function initCartCount() {
+  fetchCartCount();
+}
+
+async function fetchCartCount() {
+  try {
+    const res = await fetch('/api/cart-count.php', { credentials: 'same-origin', cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    updateCartBadge(data.count || 0);
+  } catch (e) {
+    /* Silently fail — cart count is non-critical */
+  }
+}
+
+function updateCartBadge(count) {
+  const badge = $('#cart-count');
+  if (!badge) return;
+  badge.textContent = count > 99 ? '99+' : String(count);
+  badge.hidden = count < 1;
+}
+
+/* ═══════════════════════════════════════════════
+   AJAX ADD-TO-CART
+═══════════════════════════════════════════════ */
+function initAjaxCart() {
+  $$('.btn-add-cart').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const href = btn.getAttribute('href') || btn.dataset.cartUrl;
+      if (!href || !href.includes('/cart.php')) {
+        window.location.href = href;
+        return;
+      }
+
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2v10M8 6l4-4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Adding…';
+      btn.style.pointerEvents = 'none';
+
+      try {
+        await fetch(href, { credentials: 'same-origin', redirect: 'manual' });
+        await fetchCartCount();
+        showCartToast(href);
+      } catch (err) {
+        window.location.href = href;
+        return;
+      } finally {
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.pointerEvents = '';
+        }, 1200);
+      }
+    });
+  });
+}
+
+function showCartToast(href) {
+  let toast = $('#cart-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'cart-toast';
+    toast.className = 'cart-toast';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Added to cart! <a href="/cart.php">View cart →</a>`;
+  toast.classList.add('cart-toast--visible');
+  setTimeout(() => toast.classList.remove('cart-toast--visible'), 3500);
+}
+
+/* ═══════════════════════════════════════════════
    BOOT
 ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
@@ -650,6 +843,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavDropdowns();
   initMobileMenu();
   initCurrencySwitcher();
+  initAuthModal();
+  initCartCount();
+  initAjaxCart();
   initBillingToggle();
   initScrollReveal();
   initStickyCTA();

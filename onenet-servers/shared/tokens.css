@@ -81,6 +81,16 @@
   --t-fast: .15s ease;
   --t-std:  .22s ease;
   --t-slow: .38s ease;
+
+  /* Glass / blur */
+  --glass-bg: rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.55);
+  --glass-blur: blur(18px) saturate(1.4);
+  --glass-dark-bg: rgba(15,15,26,0.55);
+  --glass-dark-border: rgba(104,104,243,.22);
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 3px rgba(67,67,240,.35);
 }
 
 /* ─── RESET ─── */

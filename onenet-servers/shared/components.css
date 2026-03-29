@@ -473,3 +473,144 @@
 .legal-card li {
   margin: 8px 0;
 }
+
+/* ─────────────────────────────────────────────────────────
+   PRESS STRIP
+───────────────────────────────────────────────────────── */
+.press-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 20px 0 36px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.press-strip-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.press-strip-logos {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.press-logo-item {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--body);
+}
+
+.press-logo-sep {
+  color: var(--border);
+  font-size: 16px;
+}
+
+.press-rating {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.press-logo-placeholder {
+  opacity: 0.55;
+}
+
+/* ─────────────────────────────────────────────────────────
+   TESTIMONIAL GRID
+───────────────────────────────────────────────────────── */
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.testi-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.testi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.testi-stars {
+  color: #F59E0B;
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+.testi-quote {
+  font-family: var(--f-copy);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--body);
+  flex: 1;
+  margin: 0;
+  font-style: italic;
+}
+
+.testi-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.testi-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.testi-av-a { background: #4343F0; }
+.testi-av-b { background: #10B981; }
+.testi-av-c { background: #F59E0B; color: #0F0F1A; }
+.testi-av-d { background: #EF4444; }
+.testi-av-e { background: #6868F3; }
+.testi-av-f { background: #3535C8; }
+.testi-av-g { background: #10B981; }
+
+.testi-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.testi-source {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .testi-grid {
+    grid-template-columns: 1fr;
+  }
+}
