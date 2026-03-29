@@ -9,106 +9,11 @@
   transform: translateY(0);
 }
 
-@media (max-width: 1080px) {
-  .hero-grid,
-  .market-grid,
-  .footer-grid,
-  .proof-grid,
-  .feature-grid,
-  .included-grid,
-  .plan-grid,
-  .mini-grid,
-  .stats-strip,
-  .timeline {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .services-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 860px) {
-  .nav-links,
-  .nav-actions .btn,
-  .nav-actions .currency-switcher {
-    display: none;
-  }
-
-  .nav-hamburger {
-    display: inline-flex;
-    margin-left: auto;
-  }
-
-  .hero-grid,
-  .market-grid,
-  .steps,
-  .services-grid,
-  .feature-grid,
-  .included-grid,
-  .plan-grid,
-  .proof-grid,
-  .footer-grid,
-  .cta-banner-inner,
-  .content-grid,
-  .contact-grid,
-  .mini-grid,
-  .stats-strip,
-  .timeline {
-    grid-template-columns: 1fr;
-    display: grid;
-  }
-
-  .cta-banner-inner {
-    text-align: left;
-  }
-
-  .sticky-cta,
-  .exit-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .sticky-cta-actions,
-  .exit-bar-form,
-  .cta-banner-actions {
-    width: 100%;
-  }
-
-  .exit-bar-form {
-    justify-content: stretch;
-    flex-direction: column;
-  }
-
+/* Chat FAB clears sticky CTA on mobile */
+@media (max-width: 48em) {
   .chat-fab {
     right: 16px;
     bottom: 84px;
-  }
-}
-
-@media (max-width: 640px) {
-  .container,
-  .container-md,
-  .container-sm,
-  .nav-shell {
-    padding-left: 18px;
-    padding-right: 18px;
-  }
-
-  .hero {
-    padding-top: calc(var(--nav-h) + 42px);
-    padding-bottom: 64px;
-  }
-
-  .cta-banner-inner,
-  .svc-card,
-  .feature-card,
-  .included-card,
-  .proof-card,
-  .market-card,
-  .event-card,
-  .step-card {
-    padding: 22px;
   }
 }
 

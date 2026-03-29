@@ -381,6 +381,12 @@ function initScrollReveal() {
   const elements = $$('.reveal');
   if (!elements.length) return;
 
+  /* Respect prefers-reduced-motion — skip animation, just show */
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    elements.forEach(el => el.classList.add('is-visible'));
+    return;
+  }
+
   if (!('IntersectionObserver' in window)) {
     elements.forEach(el => el.classList.add('is-visible'));
     return;
@@ -390,14 +396,30 @@ function initScrollReveal() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const el = entry.target;
-        const delay = el.dataset.delay || 0;
-        setTimeout(() => el.classList.add('is-visible'), delay * 80);
+        const delay = Number(el.dataset.delay || 0);
+        if (delay) {
+          setTimeout(() => el.classList.add('is-visible'), delay * 90);
+        } else {
+          el.classList.add('is-visible');
+        }
         observer.unobserve(el);
       }
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  }, {
+    threshold: 0.08,
+    rootMargin: '0px 0px -32px 0px'
+  });
 
   elements.forEach(el => observer.observe(el));
+
+  /* Lazy-load images that are below the fold */
+  $$('img:not([loading])').forEach(img => {
+    const rect = img.getBoundingClientRect();
+    if (rect.top > window.innerHeight) {
+      img.setAttribute('loading', 'lazy');
+      img.setAttribute('decoding', 'async');
+    }
+  });
 }
 
 /* ═══════════════════════════════════════════════
