@@ -126,24 +126,21 @@
       <div class="nav-actions">
         <div class="currency-dropdown" id="currency-dropdown">
           <button class="currency-trigger" type="button" aria-expanded="false" aria-haspopup="listbox" id="currency-trigger">
-            <span id="currency-flag-icon">&#127482;&#127480;</span>
+            <span id="currency-flag-icon"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="United States" role="img"><rect width="20" height="14" fill="#B22234"/><path d="M0 1.08h20M0 3.23h20M0 5.38h20M0 7.54h20M0 9.69h20M0 11.85h20" stroke="#fff" stroke-width="1.08"/><rect width="8" height="7.54" fill="#3C3B6E"/></svg></span>
             <span id="currency-label">USD</span>
             <svg class="nav-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 3l3 4 3-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div class="currency-menu" role="listbox" id="currency-menu">
-            <button type="button" role="option" class="currency-option" data-currency="NGN">&#127475;&#127468; <span>Nigerian Naira</span> <span class="currency-code">NGN</span></button>
-            <button type="button" role="option" class="currency-option" data-currency="GBP">&#127468;&#127463; <span>British Pound</span> <span class="currency-code">GBP</span></button>
-            <button type="button" role="option" class="currency-option" data-currency="USD">&#127482;&#127480; <span>US Dollar</span> <span class="currency-code">USD</span></button>
+            <button type="button" role="option" class="currency-option" data-currency="NGN"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="Nigeria" role="img"><rect width="6.67" height="14" fill="#008751"/><rect x="6.67" width="6.66" height="14" fill="#fff"/><rect x="13.33" width="6.67" height="14" fill="#008751"/></svg> <span>Nigerian Naira</span> <span class="currency-code">NGN</span></button>
+            <button type="button" role="option" class="currency-option" data-currency="GBP"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="United Kingdom" role="img"><rect width="20" height="14" fill="#012169"/><path d="M0 0l20 14M20 0L0 14" stroke="#fff" stroke-width="3"/><path d="M10 0v14M0 7h20" stroke="#fff" stroke-width="4"/><path d="M10 0v14M0 7h20" stroke="#C8102E" stroke-width="2.5"/><path d="M0 0l20 14M20 0L0 14" stroke="#C8102E" stroke-width="2"/></svg> <span>British Pound</span> <span class="currency-code">GBP</span></button>
+            <button type="button" role="option" class="currency-option" data-currency="USD"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="United States" role="img"><rect width="20" height="14" fill="#B22234"/><path d="M0 1.08h20M0 3.23h20M0 5.38h20M0 7.54h20M0 9.69h20M0 11.85h20" stroke="#fff" stroke-width="1.08"/><rect width="8" height="7.54" fill="#3C3B6E"/></svg> <span>US Dollar</span> <span class="currency-code">USD</span></button>
           </div>
         </div>
         <a href="/cart.php" class="nav-cart" aria-label="View cart" id="nav-cart">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="cart-count" id="cart-count" aria-live="polite" aria-atomic="true" hidden>0</span>
         </a>
-        <button class="btn btn-sm btn-outline nav-signin" type="button" onclick="openAuthModal()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Sign in
-        </button>
+        <a href="/login.php" class="btn btn-sm btn-outline nav-signin"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Log in</a>
         <a class="btn btn-sm btn-primary btn-icon" href="/cart.php?a=add&amp;pid=261&amp;billingcycle=monthly">Get started <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
       <button id="nav-hamburger" class="nav-hamburger" aria-expanded="false" aria-label="Open menu" type="button">
@@ -191,12 +188,12 @@
       </details>
       <div class="mobile-currency">
         <span class="mobile-currency-label">Currency:</span>
-        <button type="button" class="mobile-currency-btn" data-currency="NGN">&#127475;&#127468; NGN</button>
-        <button type="button" class="mobile-currency-btn" data-currency="GBP">&#127468;&#127463; GBP</button>
-        <button type="button" class="mobile-currency-btn" data-currency="USD">&#127482;&#127480; USD</button>
+        <button type="button" class="mobile-currency-btn" data-currency="NGN"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="Nigeria" role="img"><rect width="6.67" height="14" fill="#008751"/><rect x="6.67" width="6.66" height="14" fill="#fff"/><rect x="13.33" width="6.67" height="14" fill="#008751"/></svg> NGN</button>
+        <button type="button" class="mobile-currency-btn" data-currency="GBP"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="United Kingdom" role="img"><rect width="20" height="14" fill="#012169"/><path d="M0 0l20 14M20 0L0 14" stroke="#fff" stroke-width="3"/><path d="M10 0v14M0 7h20" stroke="#fff" stroke-width="4"/><path d="M10 0v14M0 7h20" stroke="#C8102E" stroke-width="2.5"/><path d="M0 0l20 14M20 0L0 14" stroke="#C8102E" stroke-width="2"/></svg> GBP</button>
+        <button type="button" class="mobile-currency-btn" data-currency="USD"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="United States" role="img"><rect width="20" height="14" fill="#B22234"/><path d="M0 1.08h20M0 3.23h20M0 5.38h20M0 7.54h20M0 9.69h20M0 11.85h20" stroke="#fff" stroke-width="1.08"/><rect width="8" height="7.54" fill="#3C3B6E"/></svg> USD</button>
       </div>
       <div class="mobile-drawer-actions">
-        <button class="btn btn-sm btn-outline" type="button" onclick="openAuthModal()">Sign in</button>
+        <a href="/login.php" class="btn btn-sm btn-outline">Log in</a>
         <a class="btn btn-sm btn-primary" href="/cart.php?a=add&amp;pid=261&amp;billingcycle=monthly">Get started free</a>
       </div>
     </div>
@@ -426,8 +423,8 @@
             <li><a href="/legal/agreement">Hosting Agreement</a></li>
           </ul>
           <div class="footer-contact">
-            <a href="tel:+2342013309154" class="footer-phone"><span class="footer-flag">&#127475;&#127468;</span> +234 201 330 9154</a>
-            <a href="tel:+447333880775" class="footer-phone"><span class="footer-flag">&#127468;&#127463;</span> +44 7333 880 7775</a>
+            <a href="tel:+2342013309154" class="footer-phone"><span class="footer-flag"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="Nigeria" role="img"><rect width="6.67" height="14" fill="#008751"/><rect x="6.67" width="6.66" height="14" fill="#fff"/><rect x="13.33" width="6.67" height="14" fill="#008751"/></svg></span> +234 201 330 9154</a>
+            <a href="tel:+447333880775" class="footer-phone"><span class="footer-flag"><svg width="20" height="14" viewBox="0 0 20 14" aria-label="United Kingdom" role="img"><rect width="20" height="14" fill="#012169"/><path d="M0 0l20 14M20 0L0 14" stroke="#fff" stroke-width="3"/><path d="M10 0v14M0 7h20" stroke="#fff" stroke-width="4"/><path d="M10 0v14M0 7h20" stroke="#C8102E" stroke-width="2.5"/><path d="M0 0l20 14M20 0L0 14" stroke="#C8102E" stroke-width="2"/></svg></span> +44 7333 880 7775</a>
             <a href="mailto:support@onenetservers.net" class="footer-email">support@onenetservers.net</a>
           </div>
         </div>
@@ -457,7 +454,7 @@
   </footer>
   <button id="chat-fab" class="chat-fab" aria-label="Open live chat"><span class="chat-fab-tooltip">Chat with us</span>
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-  <div id="exit-bar" class="exit-bar" hidden><p>Not ready yet? Get our <strong>free domain transfer checklist</strong>.</p><form id="exit-bar-form" class="exit-bar-form"><input type="email" placeholder="your@email.com"><button type="submit" class="btn btn-sm btn-primary">Send it free</button></form><button id="exit-bar-close" class="exit-bar-close" type="button">×</button></div>
+  <div id="exit-bar" class="exit-bar" hidden><p>Not ready yet? Get our <strong>free domain transfer checklist</strong>.</p><form id="exit-bar-form" class="exit-bar-form"><input type="email" placeholder="your@email.com"><button type="submit" class="btn btn-sm btn-primary">Send it free</button></form><button id="exit-bar-close" class="exit-bar-close" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
   <script src="/shared/main.js" defer></script>
 </body>
 </html>

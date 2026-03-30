@@ -333,9 +333,13 @@ function initCurrencySwitcher() {
     }
   });
 
-  /* Set initial state */
+  /* Set initial state — use global setCurrency once it's defined */
   switchCurrency(currentCurrency);
 }
+
+/* Re-export switchCurrency alias so inline onclick="setCurrency(...)" works
+   even before the global setCurrency function is parsed (hoisting via var).
+   The real setCurrency is defined after updateAllPrices(). */
 
 function closeAllDropdowns() {
   $$('.nav-dropdown--open').forEach(d => d.classList.remove('nav-dropdown--open'));
@@ -365,6 +369,7 @@ function initBillingToggle() {
       annualLabels.forEach(l  => l.classList.toggle('active', isAnnual));
 
       updateAllPrices();
+      applyBillingCycle();
       syncPlanCardUrls();
     });
   });
@@ -372,9 +377,14 @@ function initBillingToggle() {
 
 /* Sync plan card CTA href with current billing cycle */
 function syncPlanCardUrls() {
-  $$('.plan-card a[data-monthly-url], .plan-card a[data-annual-url]').forEach(link => {
-    if (isAnnual && link.dataset.annualUrl) link.href = link.dataset.annualUrl;
-    if (!isAnnual && link.dataset.monthlyUrl) link.href = link.dataset.monthlyUrl;
+  const cycle = isAnnual ? 'annually' : 'monthly';
+  $$('.plan-card a').forEach(link => {
+    if (isAnnual && link.dataset.annualUrl) { link.href = link.dataset.annualUrl; return; }
+    if (!isAnnual && link.dataset.monthlyUrl) { link.href = link.dataset.monthlyUrl; return; }
+    /* Fallback: swap billingcycle= param in existing href */
+    if (link.href && link.href.includes('billingcycle=')) {
+      try { link.href = link.href.replace(/billingcycle=\w+/, 'billingcycle=' + cycle); } catch (_) {}
+    }
   });
 }
 
@@ -442,18 +452,92 @@ function updateAllPrices() {
 
   updateTextByCurrency();
 
-  /* Simple data-m / data-a / data-usd / data-gbp / data-ngn fallback */
-  $$('[data-m]').forEach(el => {
-    el.textContent = isAnnual ? el.dataset.a : el.dataset.m;
+  /* ── Generic data-usd / data-gbp / data-ngn price elements ──
+     Elements carry all three currency values as data attributes.
+     We update textContent to the correct currency value (with symbol).
+     If the value is non-numeric (e.g. "Free") we use the raw attr. */
+  document.querySelectorAll('[data-usd][data-gbp][data-ngn]').forEach(el => {
+    const raw = el.dataset[currentCurrency.toLowerCase()];
+    if (raw === undefined) return;
+    const num = parseFloat(raw);
+    if (isNaN(num)) {
+      el.textContent = raw;
+    } else {
+      el.textContent = formatPrice(currentCurrency === 'NGN' ? Math.round(num) : num, currentCurrency);
+    }
   });
-  $$('[data-usd]').forEach(el => {
-    el.style.display = currentCurrency === 'USD' ? '' : 'none';
+
+  /* ── data-m / data-a elements (simple billing toggle, USD values) ──
+     These elements store monthly price in data-m and annual price in data-a.
+     Values are in USD; we convert to the selected currency. */
+  document.querySelectorAll('[data-m][data-a]').forEach(el => {
+    /* Skip .plan-num elements — already handled by [data-plan] loop above */
+    if (el.classList.contains('plan-num')) return;
+    const rawUsd = parseFloat(isAnnual ? el.dataset.a : el.dataset.m);
+    if (isNaN(rawUsd)) {
+      el.textContent = isAnnual ? el.dataset.a : el.dataset.m;
+      return;
+    }
+    const sym = el.previousElementSibling;
+    if (currentCurrency === 'NGN') {
+      if (sym && sym.classList.contains('plan-sym')) sym.textContent = '₦';
+      el.textContent = Math.round(rawUsd * 1550).toLocaleString();
+    } else if (currentCurrency === 'GBP') {
+      if (sym && sym.classList.contains('plan-sym')) sym.textContent = '£';
+      el.textContent = (rawUsd * 0.79).toFixed(2);
+    } else {
+      if (sym && sym.classList.contains('plan-sym')) sym.textContent = '$';
+      el.textContent = rawUsd.toFixed(2);
+    }
   });
-  $$('[data-ngn]').forEach(el => {
-    el.style.display = currentCurrency === 'NGN' ? '' : 'none';
+}
+
+/* ── Global helpers for inline onclick attributes in HTML ── */
+function setCurrency(currency) {
+  if (!['USD', 'GBP', 'NGN'].includes(currency)) return;
+  currentCurrency = currency;
+  localStorage.setItem('onenet_currency', currency);
+
+  /* Update dropdown trigger label */
+  const flagEl  = document.getElementById('currency-flag-icon');
+  const labelEl = document.getElementById('currency-label');
+  if (flagEl)  flagEl.textContent  = CURRENCY_PREFIXES[currency];
+  if (labelEl) labelEl.textContent = currency;
+
+  /* Update all currency button active states (desktop dropdown, mobile, legacy) */
+  document.querySelectorAll('.currency-option, .mobile-currency-btn, .currency-btn').forEach(btn => {
+    const val = btn.dataset.currency || btn.dataset.currencyBtn;
+    if (val) btn.classList.toggle('active', val === currency);
   });
-  $$('[data-gbp]').forEach(el => {
-    el.style.display = currentCurrency === 'GBP' ? '' : 'none';
+
+  updateAllPrices();
+}
+
+function applyBillingCycle() {
+  const cycle = isAnnual ? 'annually' : 'monthly';
+  /* Update plan-num elements that have data-m and data-a */
+  document.querySelectorAll('.plan-num[data-m][data-a]').forEach(el => {
+    const rawUsd = parseFloat(isAnnual ? el.dataset.a : el.dataset.m);
+    if (isNaN(rawUsd)) return;
+    const sym = el.previousElementSibling;
+    if (currentCurrency === 'NGN') {
+      if (sym && sym.classList.contains('plan-sym')) sym.textContent = '₦';
+      el.textContent = Math.round(rawUsd * 1550).toLocaleString();
+    } else if (currentCurrency === 'GBP') {
+      if (sym && sym.classList.contains('plan-sym')) sym.textContent = '£';
+      el.textContent = (rawUsd * 0.79).toFixed(2);
+    } else {
+      if (sym && sym.classList.contains('plan-sym')) sym.textContent = '$';
+      el.textContent = rawUsd.toFixed(2);
+    }
+  });
+  /* Update cart link billingcycle params */
+  document.querySelectorAll('a[href*="billingcycle="]').forEach(a => {
+    try { a.href = a.href.replace(/billingcycle=\w+/, 'billingcycle=' + cycle); } catch (_) {}
+  });
+  /* Update cycle button active states */
+  document.querySelectorAll('[data-cycle-btn]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.cycleBtn === cycle);
   });
 }
 
@@ -640,6 +724,11 @@ function initDomainSearch() {
   }
 
   function simulateSearch(query) {
+    /* Spec prototype rule: domains ending .available always show green */
+    if (query.endsWith('.available')) {
+      showAvailable(query.replace('.available', '.com'), '$15.00');
+      return;
+    }
     const isNgDomain = query.endsWith('.ng') || query.endsWith('.com.ng');
     const length = query.split('.')[0].length;
     const simulatedAvailable = (length % 2 === 0) || isNgDomain;
@@ -671,10 +760,18 @@ function initFAQ() {
   const items = $$('.faq-item');
   if (!items.length) return;
 
+  /* Support both .faq-q (existing pages) and .faq-question (spec alias) */
+  function getFaqBtn(item) {
+    return item.querySelector('.faq-q') || item.querySelector('.faq-question');
+  }
+  function getFaqAnswer(item) {
+    return item.querySelector('.faq-a') || item.querySelector('.faq-answer');
+  }
+
   /* Wire up aria-controls / id pairs */
   items.forEach((item, i) => {
-    const btn    = item.querySelector('.faq-q');
-    const answer = item.querySelector('.faq-a');
+    const btn    = getFaqBtn(item);
+    const answer = getFaqAnswer(item);
     if (!btn || !answer) return;
     const answerId = 'faq-a-' + i;
     answer.id = answerId;
@@ -683,8 +780,8 @@ function initFAQ() {
   });
 
   items.forEach(item => {
-    const btn    = item.querySelector('.faq-q');
-    const answer = item.querySelector('.faq-a');
+    const btn    = getFaqBtn(item);
+    const answer = getFaqAnswer(item);
     if (!btn || !answer) return;
 
     btn.addEventListener('click', () => {
@@ -693,8 +790,9 @@ function initFAQ() {
       /* Close all */
       items.forEach(i => {
         i.classList.remove('faq-item--open');
-        const a = i.querySelector('.faq-a');
-        const b = i.querySelector('.faq-q');
+        i.classList.remove('open');
+        const a = getFaqAnswer(i);
+        const b = getFaqBtn(i);
         if (a) { a.hidden = true; }
         if (b) { b.setAttribute('aria-expanded', 'false'); }
       });
@@ -702,6 +800,7 @@ function initFAQ() {
       /* Open this one if it was closed */
       if (!isOpen) {
         item.classList.add('faq-item--open');
+        item.classList.add('open');
         answer.hidden = false;
         btn.setAttribute('aria-expanded', 'true');
       }

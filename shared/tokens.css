@@ -5,7 +5,7 @@
    Fonts: Inter (primary) + Lato (body copy) — max weight 600
 ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lato:ital,opsz,wght@0,6..12,300;0,6..12,400;1,6..12,300&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ─── COLOUR PALETTE ─── */
 :root {
@@ -82,6 +82,23 @@
   --t-std:  .22s ease;
   --t-slow: .38s ease;
 
+  /* Canonical aliases (required by spec Section 1) */
+  --c-primary:       #4343F0;
+  --c-primary-dark:  #3535C8;
+  --c-primary-light: #6868F3;
+  --c-primary-xlight:#EEEEFF;
+  --c-primary-xxlight:#F5F5FF;
+  --c-ink:           #0F0F1A;
+  --c-body:          #3D3D5C;
+  --c-muted:         #7878A0;
+  --c-border:        #E4E4F0;
+  --c-bg:            #FFFFFF;
+  --c-bg-alt:        #F8F8FD;
+  --c-bg-3:          #F0F0FA;
+  --c-green:         #10B981;
+  --c-amber:         #F59E0B;
+  --c-red:           #EF4444;
+
   /* Glass / blur */
   --glass-bg: rgba(255,255,255,0.72);
   --glass-border: rgba(255,255,255,0.55);
@@ -126,7 +143,7 @@ button { cursor: pointer; }
 /* ─── TYPOGRAPHY ─── */
 .eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
-  font-family: var(--f-copy); font-size: 12px; font-weight: 700;
+  font-family: var(--f-copy); font-size: 12px; font-weight: 600;
   letter-spacing: .1em; text-transform: uppercase; color: var(--blue);
   margin-bottom: 12px;
 }
@@ -524,23 +541,8 @@ h5,.h5 { font-size: 15px; font-weight:600; color:var(--ink); }
 .cta-reassurance-item svg { color: var(--green); flex-shrink: 0; }
 
 /* ─── Sticky CTA ─── */
-.sticky-cta {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 490;
-  background: var(--ink); color: #fff;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 14px 52px 14px 24px;
-  transform: translateY(100%);
-  transition: transform var(--t-slow);
-  border-top: 1px solid rgba(255,255,255,.1);
-}
-.sticky-cta--visible { transform: translateY(0); }
-.sticky-cta-text { font-size: 14px; }
-.sticky-cta-text strong { color: #fff; }
-.sticky-cta-actions { display: flex; gap: 10px; flex-shrink: 0; }
-.btn-white {
-  background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.25);
-}
-.btn-white:hover { background: rgba(255,255,255,.2); }
+/* Primary definition is in the STICKY CTA BAR (Fix #8) block above. */
+/* Duplicate removed to prevent override. */
 
 /* ─── Responsive: plan card price scale ─── */
 @media (max-width: 48em) {
