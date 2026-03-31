@@ -273,6 +273,14 @@
     gap: 36px;
   }
   .hero-copy { max-width: 100%; }
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
 
   /* Browser chrome mockup moves below copy on tablet */
   .hero-browser { max-width: 540px; margin: 0 auto; }
@@ -294,9 +302,6 @@
 
   /* Hide browser chrome mockup on small phones — save space */
   .hero-browser { display: none; }
-
-  .hero-actions { flex-direction: column; align-items: flex-start; }
-  .hero-actions .btn { width: 100%; justify-content: center; }
 
   .hero-trust-strip { gap: 8px; }
   .trust-badge { font-size: 11px; padding: 6px 10px; }
